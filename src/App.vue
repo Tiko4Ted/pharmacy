@@ -97,9 +97,6 @@ const showToast = (message) => {
   showToast.timer = window.setTimeout(() => { toast.value = '' }, 2400)
 }
 
-const nextScreen = () => navigate(screens[Math.min(screenIndex.value + 1, screens.length - 1)])
-const previousScreen = () => navigate(screens[Math.max(screenIndex.value - 1, 0)])
-
 const filteredCustomers = computed(() => {
   return mockData.customers.filter((row) => row.join(' ').toLowerCase().includes(search.value.toLowerCase()))
 })
@@ -176,7 +173,7 @@ const filteredSales = computed(() => mockData.sales.filter((row) => Object.value
       </section>
 
       <section v-else-if="currentScreen === 'new-sale'" class="product-screen">
-        <AppHeader title="New Sale" subtitle="Receipt #RC-2049" @menu="toggleMenu" />
+        <AppHeader title="New Sale" subtitle="Receipt #RC-2049" @back="navigate('dashboard')" @menu="toggleMenu" />
         <button class="customer-picker"><Users :size="21" /> Walk-in customer <CaretRight :size="18" /></button><div class="section-heading"><h3>Items (3)</h3><button>Add item</button></div>
         <div class="list-card item-list"><ItemRow name="Unga Maize Flour 2kg" detail="KES 150 × 2 = KES 300" count="2" /><ItemRow name="Bidco Cooking Oil 1L" detail="KES 320 × 1 = KES 320" count="1" /><ItemRow name="Brookside Milk 500ml" detail="KES 60 × 3 = KES 180" count="3" /></div>
         <div class="total-card"><span>Subtotal</span><strong>KES 800</strong><span>Total</span><strong>KES 800</strong></div><p class="field-label">Payment method</p><div class="filter-row"><button class="active">M-Pesa</button><button>Cash</button><button>Credit</button></div><button class="primary-button" @click="navigate('payment-received')">Complete sale <Check :size="18" /></button>
@@ -186,11 +183,11 @@ const filteredSales = computed(() => mockData.sales.filter((row) => Object.value
 
       <section v-else-if="currentScreen === 'customers'" class="product-screen"><PageHeader title="Customers" subtitle="128 customers" placeholder="Search name or phone..." v-model="search" @menu="toggleMenu" /><button class="floating-add" @click="navigate('add-customer')"><Plus :size="24" /></button><div class="filter-row"><button class="active">All</button><button>With credit (23)</button><button>Top buyers</button></div><div class="list-card"><div v-for="row in filteredCustomers" :key="row[1]" class="customer-row"><div class="avatar">{{ row[0] }}</div><div class="row-main"><strong>{{ row[1] }}</strong><small>{{ row[2] }}</small></div><div class="row-side"><strong :class="{ debt: row[4] !== 'Cleared' }">{{ row[3] }}</strong><small :class="statusClass(row[4])">{{ row[4] }}</small></div></div></div></section>
 
-      <section v-else-if="currentScreen === 'add-customer'" class="product-screen"><AppHeader title="Add Customer" subtitle="New customer record" @menu="toggleMenu" /><FormField label="Full name" placeholder="e.g. Otieno Odhiambo" /><FormField label="Phone number" placeholder="+254 7XX XXX XXX" /><FormField label="Location" placeholder="e.g. Kilimani" /><div class="toggle-row"><div><strong>Allow credit</strong><small>Customer can pay later</small></div><div class="toggle on"></div></div><button class="primary-button" @click="navigate('customers')">Save customer</button></section>
+      <section v-else-if="currentScreen === 'add-customer'" class="product-screen"><AppHeader title="Add Customer" subtitle="New customer record" @back="navigate('customers')" @menu="toggleMenu" /><FormField label="Full name" placeholder="e.g. Otieno Odhiambo" /><FormField label="Phone number" placeholder="+254 7XX XXX XXX" /><FormField label="Location" placeholder="e.g. Kilimani" /><div class="toggle-row"><div><strong>Allow credit</strong><small>Customer can pay later</small></div><div class="toggle on"></div></div><button class="primary-button" @click="navigate('customers')">Save customer</button></section>
 
       <section v-else-if="currentScreen === 'suppliers'" class="product-screen"><PageHeader title="Suppliers" subtitle="14 active suppliers" placeholder="Search supplier or product..." v-model="search" @menu="toggleMenu" /><button class="floating-add" @click="navigate('add-supplier')"><Plus :size="24" /></button><div class="metric-grid"><MetricCard label="Amount owed" value="KES 214,300" note="to 6 suppliers" :icon="Warning" warning /><MetricCard label="Deliveries" value="3 this week" note="next: Mon" :icon="Truck" /></div><div class="filter-row"><button class="active">All</button><button>Owed (6)</button><button>Food & drinks</button></div><div class="list-card"><SaleRow v-for="supplier in mockData.suppliers" :key="supplier.name" v-bind="supplier" /></div></section>
 
-      <section v-else-if="currentScreen === 'add-supplier'" class="product-screen"><AppHeader title="Add Supplier" subtitle="New supplier record" @menu="toggleMenu" /><FormField label="Supplier name" placeholder="e.g. Unga Group Ltd" /><FormField label="Contact phone" placeholder="+254 7XX XXX XXX" /><FormField label="Products supplied" placeholder="e.g. Maize flour, wheat flour" /><button class="customer-picker">Payment terms <span>Cash on delivery</span><CaretRight :size="18" /></button><button class="primary-button" @click="navigate('suppliers')">Save supplier</button></section>
+      <section v-else-if="currentScreen === 'add-supplier'" class="product-screen"><AppHeader title="Add Supplier" subtitle="New supplier record" @back="navigate('suppliers')" @menu="toggleMenu" /><FormField label="Supplier name" placeholder="e.g. Unga Group Ltd" /><FormField label="Contact phone" placeholder="+254 7XX XXX XXX" /><FormField label="Products supplied" placeholder="e.g. Maize flour, wheat flour" /><button class="customer-picker">Payment terms <span>Cash on delivery</span><CaretRight :size="18" /></button><button class="primary-button" @click="navigate('suppliers')">Save supplier</button></section>
 
       <section v-else-if="currentScreen === 'stock'" class="product-screen"><PageHeader title="Stock" subtitle="142 products" placeholder="Search product..." v-model="search" @menu="toggleMenu" /><button class="floating-add"><Plus :size="24" /></button><div class="metric-grid"><MetricCard label="Products" value="142" note="in your shop" :icon="Box" /><MetricCard label="Low stock" value="7 items" note="restock soon" :icon="Warning" warning /></div><div class="filter-row"><button>All</button><button class="active">Low stock (7)</button><button>Out of stock</button></div><div class="list-card"><div v-for="row in filteredStock" :key="row[1]" class="customer-row"><div class="avatar">{{ row[0] }}</div><div class="row-main"><strong>{{ row[1] }}</strong><small>{{ row[2] }}</small></div><div class="row-side"><strong class="debt">{{ row[3] }}</strong><small class="status overdue">{{ row[4] }}</small></div></div></div></section>
     </main>
@@ -212,7 +209,6 @@ const filteredSales = computed(() => mockData.sales.filter((row) => Object.value
       </aside>
     </div>
     <div v-if="toast" class="toast">{{ toast }}</div>
-    <div class="prototype-controls"><button @click="previousScreen" :disabled="screenIndex === 0"><ArrowLeft :size="15" /></button><span>{{ screenIndex + 1 }} / {{ screens.length }}</span><button @click="nextScreen" :disabled="screenIndex === screens.length - 1"><ArrowRight :size="15" /></button></div>
   </div>
 </template>
 
