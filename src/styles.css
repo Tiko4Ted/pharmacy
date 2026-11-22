@@ -40,6 +40,8 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(17,124,114,.
 .page-menu-trigger { position: absolute; top: 20px; right: 16px; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: rgba(255,255,255,.16); }
 .page-header:has(.page-menu-trigger) { position: relative; padding-right: 64px; }
 .page-header:has(.back-button) .page-menu-trigger { top: 20px; }
+.page-header.home-header { padding-left: 64px; padding-right: 16px; }
+.page-header.home-header .page-menu-trigger { left: 16px; right: auto; }
 .drawer-heading, .drawer-profile, .drawer-row, .drawer-logout { display: flex; align-items: center; }
 .menu-layer { position: fixed; inset: 0; z-index: 20; background: rgba(12, 25, 28, .42); }
 .menu-drawer { width: min(326px, calc(100vw - 38px)); height: 100%; padding: 22px 18px; color: var(--ink); background: #fff; box-shadow: 15px 0 40px rgba(13, 55, 53, .16); animation: drawer-in .2s ease-out both; }
