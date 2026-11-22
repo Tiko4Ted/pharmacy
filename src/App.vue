@@ -12,8 +12,11 @@ import {
   PhDeviceMobile as DeviceMobile,
   PhDownloadSimple as DownloadSimple,
   PhMagnifyingGlass as MagnifyingGlass,
+  PhList as List,
+  PhX as Close,
   PhPlus as Plus,
   PhReceipt as Receipt,
+  PhShoppingCart as ShoppingCart,
   PhSignOut as SignOut,
   PhStorefront as Storefront,
   PhTruck as Truck,
@@ -25,6 +28,7 @@ import {
 const currentScreen = ref('login')
 const toast = ref('')
 const search = ref('')
+const menuOpen = ref(false)
 
 // Local-only fixture data for UI review. This is intentionally static until the API layer is added.
 const mockData = {
@@ -81,7 +85,11 @@ const isAppScreen = computed(() => screenIndex.value >= 3)
 const navigate = (screen) => {
   currentScreen.value = screen
   search.value = ''
+  menuOpen.value = false
 }
+
+const toggleMenu = () => { menuOpen.value = !menuOpen.value }
+const closeMenu = () => { menuOpen.value = false }
 
 const showToast = (message) => {
   toast.value = message
@@ -107,6 +115,7 @@ const filteredSales = computed(() => mockData.sales.filter((row) => Object.value
   <div class="app-frame">
     <header v-if="isAppScreen" class="desktop-header">
       <div class="brand-lockup"><span class="brand-mark">C</span><span>Duka Manager</span></div>
+      <button class="desktop-menu-trigger" @click="toggleMenu"><List :size="19" weight="regular" /> Menu</button>
       <div class="desktop-header-actions"><span class="desktop-user">A</span><button class="desktop-share">Share prototype</button></div>
     </header>
 
@@ -140,7 +149,7 @@ const filteredSales = computed(() => mockData.sales.filter((row) => Object.value
       </section>
 
       <section v-else-if="currentScreen === 'profile'" class="product-screen">
-        <AppHeader title="Profile" subtitle="Manage your account" :back="false" />
+        <AppHeader title="Menu" subtitle="Manage your shop" :back="false" @menu="toggleMenu" />
         <div class="profile-hero"><div class="avatar avatar-large">WK</div><div><h2>Wanjiku Kamau</h2><p>Owner · Corner Shop</p></div></div>
         <div class="list-card profile-list">
           <ListRow :icon="User" label="Personal details" /><ListRow :icon="Storefront" label="Shop details" /><ListRow :icon="CreditCard" label="Change PIN" /><ListRow :icon="Bell" label="Notifications" /><ListRow :icon="ChartLineUp" label="Account activity" />
@@ -148,9 +157,9 @@ const filteredSales = computed(() => mockData.sales.filter((row) => Object.value
       </section>
 
       <section v-else-if="currentScreen === 'dashboard'" class="product-screen dashboard-screen">
-        <AppHeader title="Good afternoon, Wanjiku" subtitle="Here’s what’s happening in your shop today" :back="false" />
+        <AppHeader title="Good afternoon, Wanjiku" subtitle="Here’s what’s happening in your shop today" :back="false" @menu="toggleMenu" />
         <div class="sales-hero"><span>Today’s sales</span><strong>{{ mockData.dashboard.todaySales }}</strong><small>{{ mockData.dashboard.yesterdayChange }} · {{ mockData.dashboard.receipts }} receipts</small></div>
-        <div class="quick-actions"><QuickAction :icon="Receipt" label="New Sale" @click="navigate('new-sale')" /><QuickAction :icon="Users" label="Customer" @click="navigate('customers')" /><QuickAction :icon="Truck" label="Supplier" @click="navigate('suppliers')" /><QuickAction :icon="Box" label="Stock In" @click="navigate('stock')" /></div>
+        <div class="quick-actions"><QuickAction :icon="ShoppingCart" label="New Sale" @click="navigate('new-sale')" /><QuickAction :icon="Users" label="Customer" @click="navigate('customers')" /><QuickAction :icon="Truck" label="Supplier" @click="navigate('suppliers')" /><QuickAction :icon="Box" label="Stock In" @click="navigate('stock')" /></div>
         <div class="metric-grid"><MetricCard label="M-Pesa today" :value="mockData.dashboard.mpesaToday" :note="mockData.dashboard.mpesaShare" :icon="DeviceMobile" /><MetricCard label="Debts" :value="mockData.dashboard.debts" :note="`${mockData.dashboard.debtCustomers} customers`" :icon="Warning" warning /></div>
         <div class="analytics-card"><div class="analytics-heading"><div><strong>Sales this week</strong><small>KES 286,450 total</small></div><span>+18.4%</span></div><div class="bar-chart"><div v-for="(height, index) in mockData.dashboard.weeklySales" :key="mockData.dashboard.weeklyLabels[index]" class="bar-column"><div class="bar" :style="{ height: `${height}px` }"></div><small>{{ mockData.dashboard.weeklyLabels[index] }}</small></div></div></div>
         <div class="section-heading"><h3>Top products</h3><button @click="navigate('stock')">View stock</button></div>
@@ -160,14 +169,14 @@ const filteredSales = computed(() => mockData.sales.filter((row) => Object.value
       </section>
 
       <section v-else-if="currentScreen === 'sales'" class="product-screen">
-        <PageHeader title="Sales" subtitle="23 receipts today" placeholder="Search receipt or customer..." v-model="search" />
+        <PageHeader title="Sales" subtitle="23 receipts today" placeholder="Search receipt or customer..." v-model="search" @menu="toggleMenu" />
         <div class="metric-grid"><MetricCard label="Total today" value="KES 48,650" note="23 receipts" :icon="Receipt" /><MetricCard label="Cash" value="KES 13,450" note="6 payments" :icon="CreditCard" /></div>
         <div class="filter-row"><button class="active">Today</button><button>Week</button><button>Month</button><button>M-Pesa</button><button>Cash</button></div>
         <div class="list-card"><SaleRow v-for="sale in filteredSales" :key="sale.receipt" v-bind="sale" /></div>
       </section>
 
       <section v-else-if="currentScreen === 'new-sale'" class="product-screen">
-        <AppHeader title="New Sale" subtitle="Receipt #RC-2049" />
+        <AppHeader title="New Sale" subtitle="Receipt #RC-2049" @menu="toggleMenu" />
         <button class="customer-picker"><Users :size="21" /> Walk-in customer <CaretRight :size="18" /></button><div class="section-heading"><h3>Items (3)</h3><button>Add item</button></div>
         <div class="list-card item-list"><ItemRow name="Unga Maize Flour 2kg" detail="KES 150 × 2 = KES 300" count="2" /><ItemRow name="Bidco Cooking Oil 1L" detail="KES 320 × 1 = KES 320" count="1" /><ItemRow name="Brookside Milk 500ml" detail="KES 60 × 3 = KES 180" count="3" /></div>
         <div class="total-card"><span>Subtotal</span><strong>KES 800</strong><span>Total</span><strong>KES 800</strong></div><p class="field-label">Payment method</p><div class="filter-row"><button class="active">M-Pesa</button><button>Cash</button><button>Credit</button></div><button class="primary-button" @click="navigate('payment-received')">Complete sale <Check :size="18" /></button>
@@ -175,18 +184,33 @@ const filteredSales = computed(() => mockData.sales.filter((row) => Object.value
 
       <section v-else-if="currentScreen === 'payment-received'" class="auth-screen payment-screen"><div class="success-mark"><Check :size="40" /></div><h1>Payment received</h1><strong class="payment-amount">KES 800</strong><p>M-Pesa · Receipt #RC-2049 · 4:32 PM</p><div class="receipt-card"><ReceiptLine label="Unga Maize Flour 2kg × 2" amount="KES 300" /><ReceiptLine label="Bidco Cooking Oil 1L × 1" amount="KES 320" /><ReceiptLine label="Brookside Milk 500ml × 3" amount="KES 180" /><hr /><ReceiptLine label="Customer" amount="Walk-in customer" /><ReceiptLine label="Total paid" amount="KES 800" strong /></div><button class="primary-button" @click="navigate('dashboard')">Back to dashboard</button></section>
 
-      <section v-else-if="currentScreen === 'customers'" class="product-screen"><PageHeader title="Customers" subtitle="128 customers" placeholder="Search name or phone..." v-model="search" /><button class="floating-add" @click="navigate('add-customer')"><Plus :size="24" /></button><div class="filter-row"><button class="active">All</button><button>With credit (23)</button><button>Top buyers</button></div><div class="list-card"><div v-for="row in filteredCustomers" :key="row[1]" class="customer-row"><div class="avatar">{{ row[0] }}</div><div class="row-main"><strong>{{ row[1] }}</strong><small>{{ row[2] }}</small></div><div class="row-side"><strong :class="{ debt: row[4] !== 'Cleared' }">{{ row[3] }}</strong><small :class="statusClass(row[4])">{{ row[4] }}</small></div></div></div></section>
+      <section v-else-if="currentScreen === 'customers'" class="product-screen"><PageHeader title="Customers" subtitle="128 customers" placeholder="Search name or phone..." v-model="search" @menu="toggleMenu" /><button class="floating-add" @click="navigate('add-customer')"><Plus :size="24" /></button><div class="filter-row"><button class="active">All</button><button>With credit (23)</button><button>Top buyers</button></div><div class="list-card"><div v-for="row in filteredCustomers" :key="row[1]" class="customer-row"><div class="avatar">{{ row[0] }}</div><div class="row-main"><strong>{{ row[1] }}</strong><small>{{ row[2] }}</small></div><div class="row-side"><strong :class="{ debt: row[4] !== 'Cleared' }">{{ row[3] }}</strong><small :class="statusClass(row[4])">{{ row[4] }}</small></div></div></div></section>
 
-      <section v-else-if="currentScreen === 'add-customer'" class="product-screen"><AppHeader title="Add Customer" subtitle="New customer record" /><FormField label="Full name" placeholder="e.g. Otieno Odhiambo" /><FormField label="Phone number" placeholder="+254 7XX XXX XXX" /><FormField label="Location" placeholder="e.g. Kilimani" /><div class="toggle-row"><div><strong>Allow credit</strong><small>Customer can pay later</small></div><div class="toggle on"></div></div><button class="primary-button" @click="navigate('customers')">Save customer</button></section>
+      <section v-else-if="currentScreen === 'add-customer'" class="product-screen"><AppHeader title="Add Customer" subtitle="New customer record" @menu="toggleMenu" /><FormField label="Full name" placeholder="e.g. Otieno Odhiambo" /><FormField label="Phone number" placeholder="+254 7XX XXX XXX" /><FormField label="Location" placeholder="e.g. Kilimani" /><div class="toggle-row"><div><strong>Allow credit</strong><small>Customer can pay later</small></div><div class="toggle on"></div></div><button class="primary-button" @click="navigate('customers')">Save customer</button></section>
 
-      <section v-else-if="currentScreen === 'suppliers'" class="product-screen"><PageHeader title="Suppliers" subtitle="14 active suppliers" placeholder="Search supplier or product..." v-model="search" /><button class="floating-add" @click="navigate('add-supplier')"><Plus :size="24" /></button><div class="metric-grid"><MetricCard label="Amount owed" value="KES 214,300" note="to 6 suppliers" :icon="Warning" warning /><MetricCard label="Deliveries" value="3 this week" note="next: Mon" :icon="Truck" /></div><div class="filter-row"><button class="active">All</button><button>Owed (6)</button><button>Food & drinks</button></div><div class="list-card"><SaleRow v-for="supplier in mockData.suppliers" :key="supplier.name" v-bind="supplier" /></div></section>
+      <section v-else-if="currentScreen === 'suppliers'" class="product-screen"><PageHeader title="Suppliers" subtitle="14 active suppliers" placeholder="Search supplier or product..." v-model="search" @menu="toggleMenu" /><button class="floating-add" @click="navigate('add-supplier')"><Plus :size="24" /></button><div class="metric-grid"><MetricCard label="Amount owed" value="KES 214,300" note="to 6 suppliers" :icon="Warning" warning /><MetricCard label="Deliveries" value="3 this week" note="next: Mon" :icon="Truck" /></div><div class="filter-row"><button class="active">All</button><button>Owed (6)</button><button>Food & drinks</button></div><div class="list-card"><SaleRow v-for="supplier in mockData.suppliers" :key="supplier.name" v-bind="supplier" /></div></section>
 
-      <section v-else-if="currentScreen === 'add-supplier'" class="product-screen"><AppHeader title="Add Supplier" subtitle="New supplier record" /><FormField label="Supplier name" placeholder="e.g. Unga Group Ltd" /><FormField label="Contact phone" placeholder="+254 7XX XXX XXX" /><FormField label="Products supplied" placeholder="e.g. Maize flour, wheat flour" /><button class="customer-picker">Payment terms <span>Cash on delivery</span><CaretRight :size="18" /></button><button class="primary-button" @click="navigate('suppliers')">Save supplier</button></section>
+      <section v-else-if="currentScreen === 'add-supplier'" class="product-screen"><AppHeader title="Add Supplier" subtitle="New supplier record" @menu="toggleMenu" /><FormField label="Supplier name" placeholder="e.g. Unga Group Ltd" /><FormField label="Contact phone" placeholder="+254 7XX XXX XXX" /><FormField label="Products supplied" placeholder="e.g. Maize flour, wheat flour" /><button class="customer-picker">Payment terms <span>Cash on delivery</span><CaretRight :size="18" /></button><button class="primary-button" @click="navigate('suppliers')">Save supplier</button></section>
 
-      <section v-else-if="currentScreen === 'stock'" class="product-screen"><PageHeader title="Stock" subtitle="142 products" placeholder="Search product..." v-model="search" /><button class="floating-add"><Plus :size="24" /></button><div class="metric-grid"><MetricCard label="Products" value="142" note="in your shop" :icon="Box" /><MetricCard label="Low stock" value="7 items" note="restock soon" :icon="Warning" warning /></div><div class="filter-row"><button>All</button><button class="active">Low stock (7)</button><button>Out of stock</button></div><div class="list-card"><div v-for="row in filteredStock" :key="row[1]" class="customer-row"><div class="avatar">{{ row[0] }}</div><div class="row-main"><strong>{{ row[1] }}</strong><small>{{ row[2] }}</small></div><div class="row-side"><strong class="debt">{{ row[3] }}</strong><small class="status overdue">{{ row[4] }}</small></div></div></div></section>
+      <section v-else-if="currentScreen === 'stock'" class="product-screen"><PageHeader title="Stock" subtitle="142 products" placeholder="Search product..." v-model="search" @menu="toggleMenu" /><button class="floating-add"><Plus :size="24" /></button><div class="metric-grid"><MetricCard label="Products" value="142" note="in your shop" :icon="Box" /><MetricCard label="Low stock" value="7 items" note="restock soon" :icon="Warning" warning /></div><div class="filter-row"><button>All</button><button class="active">Low stock (7)</button><button>Out of stock</button></div><div class="list-card"><div v-for="row in filteredStock" :key="row[1]" class="customer-row"><div class="avatar">{{ row[0] }}</div><div class="row-main"><strong>{{ row[1] }}</strong><small>{{ row[2] }}</small></div><div class="row-side"><strong class="debt">{{ row[3] }}</strong><small class="status overdue">{{ row[4] }}</small></div></div></div></section>
     </main>
 
     <nav v-if="isAppScreen" class="bottom-nav"><button @click="navigate('dashboard')" :class="{ selected: currentScreen === 'dashboard' }"><ChartLineUp :size="20" />Home</button><button @click="navigate('sales')" :class="{ selected: currentScreen === 'sales' }"><Receipt :size="20" />Sales</button><button @click="navigate('customers')" :class="{ selected: currentScreen === 'customers' }"><Users :size="20" />Customers</button><button @click="navigate('stock')" :class="{ selected: currentScreen === 'stock' }"><Box :size="20" />Stock</button><button @click="navigate('profile')" :class="{ selected: currentScreen === 'profile' }"><User :size="20" />Profile</button></nav>
+    <div v-if="menuOpen" class="menu-layer" @click.self="closeMenu">
+      <aside class="menu-drawer" aria-label="Shop navigation">
+        <div class="drawer-heading"><div class="brand-lockup"><span class="brand-mark">C</span><strong>Duka Manager</strong></div><button class="drawer-close" aria-label="Close menu" @click="closeMenu"><Close :size="21" weight="regular" /></button></div>
+        <div class="drawer-profile"><div class="avatar">WK</div><div><strong>Wanjiku Kamau</strong><small>Corner Shop</small></div></div>
+        <p class="drawer-label">Shop menu</p>
+        <button class="drawer-row" @click="navigate('dashboard')"><ChartLineUp :size="20" weight="regular" /><span>Dashboard</span><CaretRight :size="17" /></button>
+        <button class="drawer-row" @click="navigate('sales')"><Receipt :size="20" weight="regular" /><span>Sales</span><CaretRight :size="17" /></button>
+        <button class="drawer-row" @click="navigate('customers')"><Users :size="20" weight="regular" /><span>Customers</span><CaretRight :size="17" /></button>
+        <button class="drawer-row" @click="navigate('suppliers')"><Truck :size="20" weight="regular" /><span>Suppliers</span><CaretRight :size="17" /></button>
+        <button class="drawer-row" @click="navigate('stock')"><Box :size="20" weight="regular" /><span>Stock</span><CaretRight :size="17" /></button>
+        <div class="drawer-divider"></div>
+        <button class="drawer-row" @click="navigate('profile')"><User :size="20" weight="regular" /><span>Profile and settings</span><CaretRight :size="17" /></button>
+        <button class="drawer-logout" @click="navigate('login')"><SignOut :size="20" weight="regular" /><span>Log out</span></button>
+      </aside>
+    </div>
     <div v-if="toast" class="toast">{{ toast }}</div>
     <div class="prototype-controls"><button @click="previousScreen" :disabled="screenIndex === 0"><ArrowLeft :size="15" /></button><span>{{ screenIndex + 1 }} / {{ screens.length }}</span><button @click="nextScreen" :disabled="screenIndex === screens.length - 1"><ArrowRight :size="15" /></button></div>
   </div>
@@ -198,8 +222,8 @@ export default {
     statusClass(status) { return status === 'Cleared' ? 'status cleared' : status === 'Overdue' ? 'status overdue' : 'status owing' },
   },
   components: {
-    AppHeader: { props: ['title', 'subtitle', 'back'], emits: ['back'], template: `<div class="page-header"><button v-if="back !== false" class="back-button" @click="$emit('back')"><ArrowLeft :size="20" /></button><div><h1>{{ title }}</h1><p>{{ subtitle }}</p></div></div>` },
-    PageHeader: { props: ['title', 'subtitle', 'placeholder', 'modelValue'], emits: ['update:modelValue'], template: `<div class="page-header"><div><h1>{{ title }}</h1><p>{{ subtitle }}</p></div><div class="search-field"><MagnifyingGlass :size="19" /><input :placeholder="placeholder" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" /></div></div>` },
+    AppHeader: { props: ['title', 'subtitle', 'back'], emits: ['back', 'menu'], template: `<div class="page-header"><button v-if="back !== false" class="back-button" @click="$emit('back')"><ArrowLeft :size="20" weight="regular" /></button><div><h1>{{ title }}</h1><p>{{ subtitle }}</p></div><button class="page-menu-trigger" aria-label="Open menu" @click="$emit('menu')"><List :size="21" weight="regular" /></button></div>` },
+    PageHeader: { props: ['title', 'subtitle', 'placeholder', 'modelValue'], emits: ['update:modelValue', 'menu'], template: `<div class="page-header"><div><h1>{{ title }}</h1><p>{{ subtitle }}</p></div><button class="page-menu-trigger" aria-label="Open menu" @click="$emit('menu')"><List :size="21" weight="regular" /></button><div class="search-field"><MagnifyingGlass :size="19" weight="regular" /><input :placeholder="placeholder" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" /></div></div>` },
     ListRow: { props: ['icon', 'label'], template: `<button class="list-row"><component :is="icon" :size="21" /><span>{{ label }}</span><CaretRight :size="18" /></button>` },
     QuickAction: { props: ['icon', 'label'], template: `<button class="quick-action"><span><component :is="icon" :size="22" /></span><small>{{ label }}</small></button>` },
     MetricCard: { props: ['label', 'value', 'note', 'icon', 'warning'], template: `<div class="metric-card"><span class="metric-icon" :class="{ warning }"><component :is="icon" :size="19" /></span><small>{{ label }}</small><strong>{{ value }}</strong><em :class="{ warning }">{{ note }}</em></div>` },

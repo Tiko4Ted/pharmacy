@@ -36,3 +36,18 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(17,124,114,.
 .product-row strong { font-size: 12px; }
 .product-row small { margin-top: 4px; color: #84909a; font-size: 10px; }
 .product-row > strong { color: var(--teal-dark); white-space: nowrap; }
+.desktop-menu-trigger { display: inline-flex; align-items: center; gap: 7px; margin-left: auto; margin-right: 18px; padding: 8px 12px; border: 1px solid rgba(255,255,255,.18); border-radius: 8px; color: #f1f7f6; background: transparent; font-size: 12px; }
+.page-menu-trigger { position: absolute; top: 20px; right: 16px; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: rgba(255,255,255,.16); }
+.page-header:has(.page-menu-trigger) { position: relative; padding-right: 64px; }
+.page-header:has(.back-button) .page-menu-trigger { top: 20px; }
+.drawer-heading, .drawer-profile, .drawer-row, .drawer-logout { display: flex; align-items: center; }
+.menu-layer { position: fixed; inset: 0; z-index: 20; background: rgba(12, 25, 28, .42); }
+.menu-drawer { width: min(326px, calc(100vw - 38px)); height: 100%; padding: 22px 18px; color: var(--ink); background: #fff; box-shadow: 15px 0 40px rgba(13, 55, 53, .16); animation: drawer-in .2s ease-out both; }
+.drawer-heading { justify-content: space-between; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
+.drawer-heading .brand-lockup { color: var(--ink); }
+.drawer-close { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; color: #5c6972; background: #f1f4f4; }
+.drawer-profile { gap: 11px; padding: 22px 2px 15px; }.drawer-profile strong, .drawer-profile small { display: block; }.drawer-profile strong { font-size: 14px; }.drawer-profile small { margin-top: 4px; color: var(--muted); font-size: 11px; }.drawer-label { margin: 12px 2px 7px; color: #8a969e; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.drawer-row, .drawer-logout { width: 100%; gap: 12px; padding: 13px 10px; border-radius: 10px; color: var(--teal-dark); background: transparent; text-align: left; }.drawer-row span, .drawer-logout span { flex: 1; color: var(--ink); font-size: 14px; }.drawer-row:hover, .drawer-row:focus-visible { background: #eef8f6; }.drawer-divider { height: 1px; margin: 15px 0; background: var(--line); }.drawer-logout { margin-top: 15px; color: var(--red); }.drawer-logout span { color: var(--red); }
+svg { flex: 0 0 auto; }
+@keyframes drawer-in { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) { .menu-drawer { animation: none; } }
