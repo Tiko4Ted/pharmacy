@@ -11,8 +11,10 @@ import {
   PhCreditCard as CreditCard,
   PhDeviceMobile as DeviceMobile,
   PhDownloadSimple as DownloadSimple,
+  PhHouse as House,
   PhMagnifyingGlass as MagnifyingGlass,
   PhList as List,
+  PhPackage as Package,
   PhX as Close,
   PhPlus as Plus,
   PhReceipt as Receipt,
@@ -22,6 +24,7 @@ import {
   PhTruck as Truck,
   PhUser as User,
   PhUsers as Users,
+  PhUsersThree as UsersThree,
   PhWarning as Warning,
 } from '@phosphor-icons/vue'
 
@@ -157,7 +160,7 @@ const filteredSales = computed(() => mockData.sales.filter((row) => Object.value
       <section v-else-if="currentScreen === 'dashboard'" class="product-screen dashboard-screen">
         <AppHeader title="Good afternoon, Wanjiku" subtitle="Here’s what’s happening in your shop today" :back="false" @menu="toggleMenu" />
         <div class="sales-hero"><span>Today’s sales</span><strong>{{ mockData.dashboard.todaySales }}</strong><small>{{ mockData.dashboard.yesterdayChange }} · {{ mockData.dashboard.receipts }} receipts</small></div>
-        <div class="quick-actions"><QuickAction :icon="ShoppingCart" label="New Sale" @click="navigate('new-sale')" /><QuickAction :icon="Users" label="Customer" @click="navigate('customers')" /><QuickAction :icon="Truck" label="Supplier" @click="navigate('suppliers')" /><QuickAction :icon="Box" label="Stock In" @click="navigate('stock')" /></div>
+        <div class="quick-actions"><QuickAction :icon="ShoppingCart" label="New Sale" @click="navigate('new-sale')" /><QuickAction :icon="UsersThree" label="Customer" @click="navigate('customers')" /><QuickAction :icon="Truck" label="Supplier" @click="navigate('suppliers')" /><QuickAction :icon="Package" label="Stock In" @click="navigate('stock')" /></div>
         <div class="metric-grid"><MetricCard label="M-Pesa today" :value="mockData.dashboard.mpesaToday" :note="mockData.dashboard.mpesaShare" :icon="DeviceMobile" /><MetricCard label="Debts" :value="mockData.dashboard.debts" :note="`${mockData.dashboard.debtCustomers} customers`" :icon="Warning" warning /></div>
         <div class="analytics-card"><div class="analytics-heading"><div><strong>Sales this week</strong><small>KES 286,450 total</small></div><span>+18.4%</span></div><div class="bar-chart"><div v-for="(height, index) in mockData.dashboard.weeklySales" :key="mockData.dashboard.weeklyLabels[index]" class="bar-column"><div class="bar" :style="{ height: `${height}px` }"></div><small>{{ mockData.dashboard.weeklyLabels[index] }}</small></div></div></div>
         <div class="section-heading"><h3>Top products</h3><button @click="navigate('stock')">View stock</button></div>
@@ -193,17 +196,17 @@ const filteredSales = computed(() => mockData.sales.filter((row) => Object.value
       <section v-else-if="currentScreen === 'stock'" class="product-screen"><PageHeader title="Stock" subtitle="142 products" placeholder="Search product..." v-model="search" @menu="toggleMenu" /><button class="floating-add"><Plus :size="24" /></button><div class="metric-grid"><MetricCard label="Products" value="142" note="in your shop" :icon="Box" /><MetricCard label="Low stock" value="7 items" note="restock soon" :icon="Warning" warning /></div><div class="filter-row"><button>All</button><button class="active">Low stock (7)</button><button>Out of stock</button></div><div class="list-card"><div v-for="row in filteredStock" :key="row[1]" class="customer-row"><div class="avatar">{{ row[0] }}</div><div class="row-main"><strong>{{ row[1] }}</strong><small>{{ row[2] }}</small></div><div class="row-side"><strong class="debt">{{ row[3] }}</strong><small class="status overdue">{{ row[4] }}</small></div></div></div></section>
     </main>
 
-    <nav v-if="isAppScreen" class="bottom-nav"><button @click="navigate('dashboard')" :class="{ selected: currentScreen === 'dashboard' }"><ChartLineUp :size="20" />Home</button><button @click="navigate('sales')" :class="{ selected: currentScreen === 'sales' }"><Receipt :size="20" />Sales</button><button @click="navigate('customers')" :class="{ selected: currentScreen === 'customers' }"><Users :size="20" />Customers</button><button @click="navigate('stock')" :class="{ selected: currentScreen === 'stock' }"><Box :size="20" />Stock</button><button @click="navigate('profile')" :class="{ selected: currentScreen === 'profile' }"><User :size="20" />Profile</button></nav>
+    <nav v-if="isAppScreen" class="bottom-nav"><button @click="navigate('dashboard')" :class="{ selected: currentScreen === 'dashboard' }"><House :size="20" />Home</button><button @click="navigate('sales')" :class="{ selected: currentScreen === 'sales' }"><Receipt :size="20" />Sales</button><button @click="navigate('customers')" :class="{ selected: currentScreen === 'customers' }"><UsersThree :size="20" />Customers</button><button @click="navigate('stock')" :class="{ selected: currentScreen === 'stock' }"><Package :size="20" />Stock</button><button @click="toggleMenu" :class="{ selected: menuOpen }"><List :size="20" />Menu</button></nav>
     <div v-if="menuOpen" class="menu-layer" @click.self="closeMenu">
       <aside class="menu-drawer" aria-label="Shop navigation">
         <div class="drawer-heading"><div class="brand-lockup"><span class="brand-mark">C</span><strong>Duka Manager</strong></div><button class="drawer-close" aria-label="Close menu" @click="closeMenu"><Close :size="21" weight="regular" /></button></div>
         <div class="drawer-profile"><div class="avatar">WK</div><div><strong>Wanjiku Kamau</strong><small>Corner Shop</small></div></div>
         <p class="drawer-label">Shop menu</p>
-        <button class="drawer-row" @click="navigate('dashboard')"><ChartLineUp :size="20" weight="regular" /><span>Dashboard</span><CaretRight :size="17" /></button>
+        <button class="drawer-row" @click="navigate('dashboard')"><House :size="20" weight="regular" /><span>Dashboard</span><CaretRight :size="17" /></button>
         <button class="drawer-row" @click="navigate('sales')"><Receipt :size="20" weight="regular" /><span>Sales</span><CaretRight :size="17" /></button>
-        <button class="drawer-row" @click="navigate('customers')"><Users :size="20" weight="regular" /><span>Customers</span><CaretRight :size="17" /></button>
+        <button class="drawer-row" @click="navigate('customers')"><UsersThree :size="20" weight="regular" /><span>Customers</span><CaretRight :size="17" /></button>
         <button class="drawer-row" @click="navigate('suppliers')"><Truck :size="20" weight="regular" /><span>Suppliers</span><CaretRight :size="17" /></button>
-        <button class="drawer-row" @click="navigate('stock')"><Box :size="20" weight="regular" /><span>Stock</span><CaretRight :size="17" /></button>
+        <button class="drawer-row" @click="navigate('stock')"><Package :size="20" weight="regular" /><span>Stock</span><CaretRight :size="17" /></button>
         <div class="drawer-divider"></div>
         <button class="drawer-row" @click="navigate('profile')"><User :size="20" weight="regular" /><span>Profile and settings</span><CaretRight :size="17" /></button>
         <button class="drawer-logout" @click="navigate('login')"><SignOut :size="20" weight="regular" /><span>Log out</span></button>
