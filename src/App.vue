@@ -110,6 +110,17 @@ const filteredStock = computed(() => {
 })
 
 const filteredSales = computed(() => mockData.sales.filter((row) => Object.values(row).join(' ').toLowerCase().includes(search.value.toLowerCase())))
+
+const statusClass = (status) => status === 'Cleared' ? 'status cleared' : status === 'Overdue' ? 'status overdue' : 'status owing'
+const AppHeader = { props: ['title', 'subtitle', 'back', 'homeHeader'], emits: ['back', 'menu'], template: `<div class="page-header" :class="{ 'home-header': homeHeader }"><button v-if="back !== false" class="back-button" @click="$emit('back')"><ArrowLeft :size="20" weight="regular" /></button><div><h1>{{ title }}</h1><p>{{ subtitle }}</p></div><button class="page-menu-trigger" aria-label="Open menu" @click="$emit('menu')"><List :size="21" weight="regular" /></button></div>` }
+const PageHeader = { props: ['title', 'subtitle', 'placeholder', 'modelValue'], emits: ['update:modelValue', 'menu'], template: `<div class="page-header"><div><h1>{{ title }}</h1><p>{{ subtitle }}</p></div><button class="page-menu-trigger" aria-label="Open menu" @click="$emit('menu')"><List :size="21" weight="regular" /></button><div class="search-field"><MagnifyingGlass :size="19" weight="regular" /><input :placeholder="placeholder" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" /></div></div>` }
+const ListRow = { props: ['icon', 'label'], template: `<button class="list-row"><component :is="icon" :size="21" /><span>{{ label }}</span><CaretRight :size="18" /></button>` }
+const QuickAction = { props: ['icon', 'label'], template: `<button class="quick-action"><span><component :is="icon" :size="22" /></span><small>{{ label }}</small></button>` }
+const MetricCard = { props: ['label', 'value', 'note', 'icon', 'warning'], template: `<div class="metric-card"><span class="metric-icon" :class="{ warning }"><component :is="icon" :size="19" /></span><small>{{ label }}</small><strong>{{ value }}</strong><em :class="{ warning }">{{ note }}</em></div>` }
+const SaleRow = { props: ['initials', 'name', 'receipt', 'amount', 'badge'], template: `<div class="customer-row"><div class="avatar">{{ initials }}</div><div class="row-main"><strong>{{ name }}</strong><small>{{ receipt }}</small></div><div class="row-side"><strong>{{ amount }}</strong><small class="status owing">{{ badge }}</small></div></div>` }
+const ItemRow = { props: ['name', 'detail', 'count'], template: `<div class="item-row"><div><strong>{{ name }}</strong><small>{{ detail }}</small></div><div class="stepper"><button>−</button><b>{{ count }}</b><button>+</button></div></div>` }
+const FormField = { props: ['label', 'placeholder'], template: `<label>{{ label }}<input :placeholder="placeholder" /></label>` }
+const ReceiptLine = { props: ['label', 'amount', 'strong'], template: `<div class="receipt-line" :class="{ strong }"><span>{{ label }}</span><strong>{{ amount }}</strong></div>` }
 </script>
 
 <template>
@@ -218,21 +229,3 @@ const filteredSales = computed(() => mockData.sales.filter((row) => Object.value
   </div>
 </template>
 
-<script>
-export default {
-  methods: {
-    statusClass(status) { return status === 'Cleared' ? 'status cleared' : status === 'Overdue' ? 'status overdue' : 'status owing' },
-  },
-  components: {
-    AppHeader: { props: ['title', 'subtitle', 'back', 'homeHeader'], emits: ['back', 'menu'], template: `<div class="page-header" :class="{ 'home-header': homeHeader }"><button v-if="back !== false" class="back-button" @click="$emit('back')"><ArrowLeft :size="20" weight="regular" /></button><div><h1>{{ title }}</h1><p>{{ subtitle }}</p></div><button class="page-menu-trigger" aria-label="Open menu" @click="$emit('menu')"><List :size="21" weight="regular" /></button></div>` },
-    PageHeader: { props: ['title', 'subtitle', 'placeholder', 'modelValue'], emits: ['update:modelValue', 'menu'], template: `<div class="page-header"><div><h1>{{ title }}</h1><p>{{ subtitle }}</p></div><button class="page-menu-trigger" aria-label="Open menu" @click="$emit('menu')"><List :size="21" weight="regular" /></button><div class="search-field"><MagnifyingGlass :size="19" weight="regular" /><input :placeholder="placeholder" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" /></div></div>` },
-    ListRow: { props: ['icon', 'label'], template: `<button class="list-row"><component :is="icon" :size="21" /><span>{{ label }}</span><CaretRight :size="18" /></button>` },
-    QuickAction: { props: ['icon', 'label'], template: `<button class="quick-action"><span><component :is="icon" :size="22" /></span><small>{{ label }}</small></button>` },
-    MetricCard: { props: ['label', 'value', 'note', 'icon', 'warning'], template: `<div class="metric-card"><span class="metric-icon" :class="{ warning }"><component :is="icon" :size="19" /></span><small>{{ label }}</small><strong>{{ value }}</strong><em :class="{ warning }">{{ note }}</em></div>` },
-    SaleRow: { props: ['initials', 'name', 'receipt', 'amount', 'badge'], template: `<div class="customer-row"><div class="avatar">{{ initials }}</div><div class="row-main"><strong>{{ name }}</strong><small>{{ receipt }}</small></div><div class="row-side"><strong>{{ amount }}</strong><small class="status owing">{{ badge }}</small></div></div>` },
-    ItemRow: { props: ['name', 'detail', 'count'], template: `<div class="item-row"><div><strong>{{ name }}</strong><small>{{ detail }}</small></div><div class="stepper"><button>−</button><b>{{ count }}</b><button>+</button></div></div>` },
-    FormField: { props: ['label', 'placeholder'], template: `<label>{{ label }}<input :placeholder="placeholder" /></label>` },
-    ReceiptLine: { props: ['label', 'amount', 'strong'], template: `<div class="receipt-line" :class="{ strong }"><span>{{ label }}</span><strong>{{ amount }}</strong></div>` },
-  },
-}
-</script>
