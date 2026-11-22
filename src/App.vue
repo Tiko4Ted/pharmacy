@@ -86,6 +86,7 @@ const navigate = (screen) => {
   currentScreen.value = screen
   search.value = ''
   menuOpen.value = false
+  window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'auto' }))
 }
 
 const toggleMenu = () => { menuOpen.value = !menuOpen.value }
