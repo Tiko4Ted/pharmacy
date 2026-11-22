@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, h, ref } from 'vue'
 import {
   PhArrowLeft as ArrowLeft,
   PhArrowRight as ArrowRight,
@@ -112,15 +112,16 @@ const filteredStock = computed(() => {
 const filteredSales = computed(() => mockData.sales.filter((row) => Object.values(row).join(' ').toLowerCase().includes(search.value.toLowerCase())))
 
 const statusClass = (status) => status === 'Cleared' ? 'status cleared' : status === 'Overdue' ? 'status overdue' : 'status owing'
-const AppHeader = { props: ['title', 'subtitle', 'back', 'homeHeader'], emits: ['back', 'menu'], template: `<div class="page-header" :class="{ 'home-header': homeHeader }"><button v-if="back !== false" class="back-button" @click="$emit('back')"><ArrowLeft :size="20" weight="regular" /></button><div><h1>{{ title }}</h1><p>{{ subtitle }}</p></div><button class="page-menu-trigger" aria-label="Open menu" @click="$emit('menu')"><List :size="21" weight="regular" /></button></div>` }
-const PageHeader = { props: ['title', 'subtitle', 'placeholder', 'modelValue'], emits: ['update:modelValue', 'menu'], template: `<div class="page-header"><div><h1>{{ title }}</h1><p>{{ subtitle }}</p></div><button class="page-menu-trigger" aria-label="Open menu" @click="$emit('menu')"><List :size="21" weight="regular" /></button><div class="search-field"><MagnifyingGlass :size="19" weight="regular" /><input :placeholder="placeholder" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" /></div></div>` }
-const ListRow = { props: ['icon', 'label'], template: `<button class="list-row"><component :is="icon" :size="21" /><span>{{ label }}</span><CaretRight :size="18" /></button>` }
-const QuickAction = { props: ['icon', 'label'], template: `<button class="quick-action"><span><component :is="icon" :size="22" /></span><small>{{ label }}</small></button>` }
-const MetricCard = { props: ['label', 'value', 'note', 'icon', 'warning'], template: `<div class="metric-card"><span class="metric-icon" :class="{ warning }"><component :is="icon" :size="19" /></span><small>{{ label }}</small><strong>{{ value }}</strong><em :class="{ warning }">{{ note }}</em></div>` }
-const SaleRow = { props: ['initials', 'name', 'receipt', 'amount', 'badge'], template: `<div class="customer-row"><div class="avatar">{{ initials }}</div><div class="row-main"><strong>{{ name }}</strong><small>{{ receipt }}</small></div><div class="row-side"><strong>{{ amount }}</strong><small class="status owing">{{ badge }}</small></div></div>` }
-const ItemRow = { props: ['name', 'detail', 'count'], template: `<div class="item-row"><div><strong>{{ name }}</strong><small>{{ detail }}</small></div><div class="stepper"><button>−</button><b>{{ count }}</b><button>+</button></div></div>` }
-const FormField = { props: ['label', 'placeholder'], template: `<label>{{ label }}<input :placeholder="placeholder" /></label>` }
-const ReceiptLine = { props: ['label', 'amount', 'strong'], template: `<div class="receipt-line" :class="{ strong }"><span>{{ label }}</span><strong>{{ amount }}</strong></div>` }
+const icon = (component, props = {}) => h(component, { size: 20, ...props })
+const AppHeader = { props: ['title', 'subtitle', 'back', 'homeHeader'], emits: ['back', 'menu'], setup(props, { emit }) { return () => h('div', { class: ['page-header', { 'home-header': props.homeHeader }] }, [props.back !== false ? h('button', { class: 'back-button', onClick: () => emit('back') }, [icon(ArrowLeft)]) : null, h('div', [h('h1', props.title), h('p', props.subtitle)]), h('button', { class: 'page-menu-trigger', 'aria-label': 'Open menu', onClick: () => emit('menu') }, [icon(List, { size: 21 })])]) } }
+const PageHeader = { props: ['title', 'subtitle', 'placeholder', 'modelValue'], emits: ['update:modelValue', 'menu'], setup(props, { emit }) { return () => h('div', { class: 'page-header' }, [h('div', [h('h1', props.title), h('p', props.subtitle)]), h('button', { class: 'page-menu-trigger', 'aria-label': 'Open menu', onClick: () => emit('menu') }, [icon(List, { size: 21 })]), h('div', { class: 'search-field' }, [icon(MagnifyingGlass, { size: 19 }), h('input', { placeholder: props.placeholder, value: props.modelValue, onInput: event => emit('update:modelValue', event.target.value) })])]) } }
+const ListRow = { props: ['icon', 'label'], setup(props) { return () => h('button', { class: 'list-row' }, [icon(props.icon, { size: 21 }), h('span', props.label), icon(CaretRight, { size: 18 })]) } }
+const QuickAction = { props: ['icon', 'label'], setup(props, { emit }) { return () => h('button', { class: 'quick-action', onClick: () => emit('click') }, [h('span', [icon(props.icon, { size: 22 })]), h('small', props.label)]) } }
+const MetricCard = { props: ['label', 'value', 'note', 'icon', 'warning'], setup(props) { return () => h('div', { class: 'metric-card' }, [h('span', { class: ['metric-icon', { warning: props.warning }] }, [icon(props.icon, { size: 19 })]), h('small', props.label), h('strong', props.value), h('em', { class: { warning: props.warning } }, props.note)]) } }
+const SaleRow = { props: ['initials', 'name', 'receipt', 'amount', 'badge'], setup(props) { return () => h('div', { class: 'customer-row' }, [h('div', { class: 'avatar' }, props.initials), h('div', { class: 'row-main' }, [h('strong', props.name), h('small', props.receipt)]), h('div', { class: 'row-side' }, [h('strong', props.amount), h('small', { class: 'status owing' }, props.badge)])]) } }
+const ItemRow = { props: ['name', 'detail', 'count'], setup(props) { return () => h('div', { class: 'item-row' }, [h('div', [h('strong', props.name), h('small', props.detail)]), h('div', { class: 'stepper' }, [h('button', '−'), h('b', props.count), h('button', '+')])]) } }
+const FormField = { props: ['label', 'placeholder'], setup(props) { return () => h('label', [props.label, h('input', { placeholder: props.placeholder })]) } }
+const ReceiptLine = { props: ['label', 'amount', 'strong'], setup(props) { return () => h('div', { class: ['receipt-line', { strong: props.strong }] }, [h('span', props.label), h('strong', props.amount)]) } }
 </script>
 
 <template>
