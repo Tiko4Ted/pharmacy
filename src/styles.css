@@ -55,6 +55,10 @@ svg { flex: 0 0 auto; }
 @media (prefers-reduced-motion: reduce) { .menu-drawer { animation: none; } }
 @media (min-width: 641px) { .auth-screen, .product-screen { min-height: calc(100dvh - 50px); } }
 .dashboard-screen .quick-actions { grid-template-columns: repeat(3, 1fr); }
+.finance-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 15px; margin: 13px 0; border: 1px solid #f0dfb8; border-radius: 15px; background: #fffaf0; }
+.finance-summary span, .finance-summary small { display: block; color: #7d6b4c; font-size: 11px; }
+.finance-summary strong { display: block; margin: 4px 0; color: #8c641d; font-size: 20px; }
+.finance-summary button { display: inline-flex; align-items: center; gap: 3px; flex: 0 0 auto; color: #9a6b15; background: transparent; font-size: 12px; font-weight: 700; }
 .page-header.home-header .page-menu-trigger { z-index: 2; pointer-events: auto; }
 .home-fab { position: fixed; right: max(18px, calc((100vw - 390px) / 2 + 18px)); bottom: 84px; z-index: 6; display: inline-flex; align-items: center; gap: 8px; padding: 13px 17px; border-radius: 999px; color: #fff; background: var(--teal); box-shadow: 0 10px 25px rgba(9, 102, 94, .28); font-size: 13px; font-weight: 700; }
 .home-fab:active { transform: translateY(1px); }
