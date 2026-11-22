@@ -26,6 +26,49 @@ const currentScreen = ref('login')
 const toast = ref('')
 const search = ref('')
 
+// Local-only fixture data for UI review. This is intentionally static until the API layer is added.
+const mockData = {
+  shop: { owner: 'Wanjiku Kamau', name: 'Corner Shop', phone: '+254 712 345 678' },
+  dashboard: {
+    todaySales: 'KES 48,650', yesterdayChange: '+12% vs yesterday', receipts: 23,
+    mpesaToday: 'KES 31,200', mpesaShare: '64% of sales', debts: 'KES 86,400', debtCustomers: 23,
+    weeklySales: [28, 36, 31, 48, 42, 58, 48],
+    weeklyLabels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'],
+    topProducts: [
+      { name: 'Unga Maize Flour 2kg', units: 42, revenue: 'KES 6,300' },
+      { name: 'Bidco Cooking Oil 1L', units: 28, revenue: 'KES 8,960' },
+      { name: 'Brookside Milk 500ml', units: 64, revenue: 'KES 3,840' },
+    ],
+  },
+  sales: [
+    { initials: 'WK', name: 'Wanjiku Kamau', receipt: '#RC-2048 · 4:12 PM · 6 items', amount: 'KES 1,850', badge: 'M-Pesa' },
+    { initials: 'OO', name: 'Otieno Odhiambo', receipt: '#RC-2047 · 3:40 PM · 3 items', amount: 'KES 620', badge: 'Cash' },
+    { initials: 'AM', name: 'Aisha Mohamed', receipt: '#RC-2046 · 2:55 PM · 11 items', amount: 'KES 3,400', badge: 'Credit' },
+    { initials: 'KC', name: 'Kiprono Cheruiyot', receipt: '#RC-2045 · 1:28 PM · 8 items', amount: 'KES 2,780', badge: 'M-Pesa' },
+    { initials: 'HA', name: 'Hassan Ali', receipt: '#RC-2044 · 12:15 PM · 4 items', amount: 'KES 950', badge: 'Cash' },
+  ],
+  customers: [
+    ['WK', 'Wanjiku Kamau', '0712 345 678 · Kawagware', 'KES 0', 'Cleared'],
+    ['OO', 'Otieno Odhiambo', '0722 910 442 · Kilimani', 'KES 4,200', 'Owing'],
+    ['AM', 'Aisha Mohamed', '0733 218 905 · Eastleigh', 'KES 12,500', 'Owing'],
+    ['MN', 'Mwangi Njoroge', '0745 673 009 · Githurai', 'KES 9,800', 'Overdue'],
+    ['HA', 'Hassan Ali', '0711 802 664 · South B', 'KES 15,000', 'Owing'],
+  ],
+  suppliers: [
+    { initials: 'UG', name: 'Unga Group Ltd', receipt: 'Maize & wheat flour', amount: 'KES 62,000', badge: 'Owed' },
+    { initials: 'BA', name: 'Bidco Africa', receipt: 'Cooking oil, soap', amount: 'KES 48,500', badge: 'Owed' },
+    { initials: 'BD', name: 'Brookside Dairy', receipt: 'Milk, yoghurt', amount: 'KES 0', badge: 'Paid' },
+    { initials: 'KC', name: 'Kenafric Industries', receipt: 'Biscuits, sweets', amount: 'KES 22,300', badge: 'Owed' },
+  ],
+  stock: [
+    ['UM', 'Unga Maize Flour 2kg', 'Price KES 150', '4 left', 'Low'],
+    ['BC', 'Bidco Cooking Oil 1L', 'Price KES 320', '2 left', 'Low'],
+    ['BM', 'Brookside Milk 500ml', 'Price KES 60', '6 left', 'Reorder'],
+    ['SK', 'Soko Maize Meal 2kg', 'Price KES 170', '0 left', 'Out'],
+    ['BR', 'Brookside Yoghurt 500ml', 'Price KES 120', '9 left', 'Healthy'],
+  ],
+}
+
 const screens = [
   'create-account', 'create-pin', 'login', 'profile', 'dashboard', 'sales',
   'new-sale', 'payment-received', 'customers', 'add-customer', 'suppliers',
@@ -50,24 +93,14 @@ const nextScreen = () => navigate(screens[Math.min(screenIndex.value + 1, screen
 const previousScreen = () => navigate(screens[Math.max(screenIndex.value - 1, 0)])
 
 const filteredCustomers = computed(() => {
-  const rows = [
-    ['WK', 'Wanjiku Kamau', '0712 345 678 · Kawagware', 'KES 0', 'Cleared'],
-    ['OO', 'Otieno Odhiambo', '0722 910 442 · Kilimani', 'KES 4,200', 'Owing'],
-    ['AM', 'Aisha Mohamed', '0733 218 905 · Eastleigh', 'KES 12,500', 'Owing'],
-    ['MN', 'Mwangi Njoroge', '0745 673 009 · Githurai', 'KES 9,800', 'Overdue'],
-    ['HA', 'Hassan Ali', '0711 802 664 · South B', 'KES 15,000', 'Owing'],
-  ]
-  return rows.filter((row) => row.join(' ').toLowerCase().includes(search.value.toLowerCase()))
+  return mockData.customers.filter((row) => row.join(' ').toLowerCase().includes(search.value.toLowerCase()))
 })
 
 const filteredStock = computed(() => {
-  const rows = [
-    ['UM', 'Unga Maize Flour 2kg', 'Price KES 150', '4 left', 'Low'],
-    ['BC', 'Bidco Cooking Oil 1L', 'Price KES 320', '2 left', 'Low'],
-    ['BM', 'Brookside Milk 500ml', 'Price KES 60', '6 left', 'Reorder'],
-  ]
-  return rows.filter((row) => row.join(' ').toLowerCase().includes(search.value.toLowerCase()))
+  return mockData.stock.filter((row) => row.join(' ').toLowerCase().includes(search.value.toLowerCase()))
 })
+
+const filteredSales = computed(() => mockData.sales.filter((row) => Object.values(row).join(' ').toLowerCase().includes(search.value.toLowerCase())))
 </script>
 
 <template>
@@ -116,9 +149,12 @@ const filteredStock = computed(() => {
 
       <section v-else-if="currentScreen === 'dashboard'" class="product-screen dashboard-screen">
         <AppHeader title="Good afternoon, Wanjiku" subtitle="Here’s what’s happening in your shop today" :back="false" />
-        <div class="sales-hero"><span>Today’s sales</span><strong>KES 48,650</strong><small>+12% vs yesterday · 23 receipts</small></div>
+        <div class="sales-hero"><span>Today’s sales</span><strong>{{ mockData.dashboard.todaySales }}</strong><small>{{ mockData.dashboard.yesterdayChange }} · {{ mockData.dashboard.receipts }} receipts</small></div>
         <div class="quick-actions"><QuickAction :icon="Receipt" label="New Sale" @click="navigate('new-sale')" /><QuickAction :icon="Users" label="Customer" @click="navigate('customers')" /><QuickAction :icon="Truck" label="Supplier" @click="navigate('suppliers')" /><QuickAction :icon="Box" label="Stock In" @click="navigate('stock')" /></div>
-        <div class="metric-grid"><MetricCard label="M-Pesa today" value="KES 31,200" note="64% of sales" :icon="DeviceMobile" /><MetricCard label="Debts" value="KES 86,400" note="23 customers" :icon="Warning" warning /></div>
+        <div class="metric-grid"><MetricCard label="M-Pesa today" :value="mockData.dashboard.mpesaToday" :note="mockData.dashboard.mpesaShare" :icon="DeviceMobile" /><MetricCard label="Debts" :value="mockData.dashboard.debts" :note="`${mockData.dashboard.debtCustomers} customers`" :icon="Warning" warning /></div>
+        <div class="analytics-card"><div class="analytics-heading"><div><strong>Sales this week</strong><small>KES 286,450 total</small></div><span>+18.4%</span></div><div class="bar-chart"><div v-for="(height, index) in mockData.dashboard.weeklySales" :key="mockData.dashboard.weeklyLabels[index]" class="bar-column"><div class="bar" :style="{ height: `${height}px` }"></div><small>{{ mockData.dashboard.weeklyLabels[index] }}</small></div></div></div>
+        <div class="section-heading"><h3>Top products</h3><button @click="navigate('stock')">View stock</button></div>
+        <div class="list-card top-products"><div v-for="product in mockData.dashboard.topProducts" :key="product.name" class="product-row"><div><strong>{{ product.name }}</strong><small>{{ product.units }} units sold</small></div><strong>{{ product.revenue }}</strong></div></div>
         <div class="section-heading"><h3>Recent sales</h3><button @click="navigate('sales')">View all</button></div>
         <div class="list-card"><SaleRow initials="WK" name="Wanjiku Kamau" receipt="#RC-2048 · 4:12 PM" amount="KES 1,850" badge="M-Pesa" /><SaleRow initials="OO" name="Otieno Odhiambo" receipt="#RC-2047 · 3:40 PM" amount="KES 620" badge="Cash" /></div>
       </section>
@@ -127,7 +163,7 @@ const filteredStock = computed(() => {
         <PageHeader title="Sales" subtitle="23 receipts today" placeholder="Search receipt or customer..." v-model="search" />
         <div class="metric-grid"><MetricCard label="Total today" value="KES 48,650" note="23 receipts" :icon="Receipt" /><MetricCard label="Cash" value="KES 13,450" note="6 payments" :icon="CreditCard" /></div>
         <div class="filter-row"><button class="active">Today</button><button>Week</button><button>Month</button><button>M-Pesa</button><button>Cash</button></div>
-        <div class="list-card"><SaleRow initials="WK" name="Wanjiku Kamau" receipt="#RC-2048 · 4:12 PM · 6 items" amount="KES 1,850" badge="M-Pesa" /><SaleRow initials="OO" name="Otieno Odhiambo" receipt="#RC-2047 · 3:40 PM · 3 items" amount="KES 620" badge="Cash" /><SaleRow initials="AM" name="Aisha Mohamed" receipt="#RC-2046 · 2:55 PM · 11 items" amount="KES 3,400" badge="Credit" /></div>
+        <div class="list-card"><SaleRow v-for="sale in filteredSales" :key="sale.receipt" v-bind="sale" /></div>
       </section>
 
       <section v-else-if="currentScreen === 'new-sale'" class="product-screen">
@@ -143,7 +179,7 @@ const filteredStock = computed(() => {
 
       <section v-else-if="currentScreen === 'add-customer'" class="product-screen"><AppHeader title="Add Customer" subtitle="New customer record" /><FormField label="Full name" placeholder="e.g. Otieno Odhiambo" /><FormField label="Phone number" placeholder="+254 7XX XXX XXX" /><FormField label="Location" placeholder="e.g. Kilimani" /><div class="toggle-row"><div><strong>Allow credit</strong><small>Customer can pay later</small></div><div class="toggle on"></div></div><button class="primary-button" @click="navigate('customers')">Save customer</button></section>
 
-      <section v-else-if="currentScreen === 'suppliers'" class="product-screen"><PageHeader title="Suppliers" subtitle="14 active suppliers" placeholder="Search supplier or product..." /><button class="floating-add" @click="navigate('add-supplier')"><Plus :size="24" /></button><div class="metric-grid"><MetricCard label="Amount owed" value="KES 214,300" note="to 6 suppliers" :icon="Warning" warning /><MetricCard label="Deliveries" value="3 this week" note="next: Mon" :icon="Truck" /></div><div class="filter-row"><button class="active">All</button><button>Owed (6)</button><button>Food & drinks</button></div><div class="list-card"><SaleRow initials="UG" name="Unga Group Ltd" receipt="Maize & wheat flour" amount="KES 62,000" badge="Owed" /><SaleRow initials="BA" name="Bidco Africa" receipt="Cooking oil, soap" amount="KES 48,500" badge="Owed" /><SaleRow initials="BD" name="Brookside Dairy" receipt="Milk, yoghurt" amount="KES 0" badge="Paid" /></div></section>
+      <section v-else-if="currentScreen === 'suppliers'" class="product-screen"><PageHeader title="Suppliers" subtitle="14 active suppliers" placeholder="Search supplier or product..." v-model="search" /><button class="floating-add" @click="navigate('add-supplier')"><Plus :size="24" /></button><div class="metric-grid"><MetricCard label="Amount owed" value="KES 214,300" note="to 6 suppliers" :icon="Warning" warning /><MetricCard label="Deliveries" value="3 this week" note="next: Mon" :icon="Truck" /></div><div class="filter-row"><button class="active">All</button><button>Owed (6)</button><button>Food & drinks</button></div><div class="list-card"><SaleRow v-for="supplier in mockData.suppliers" :key="supplier.name" v-bind="supplier" /></div></section>
 
       <section v-else-if="currentScreen === 'add-supplier'" class="product-screen"><AppHeader title="Add Supplier" subtitle="New supplier record" /><FormField label="Supplier name" placeholder="e.g. Unga Group Ltd" /><FormField label="Contact phone" placeholder="+254 7XX XXX XXX" /><FormField label="Products supplied" placeholder="e.g. Maize flour, wheat flour" /><button class="customer-picker">Payment terms <span>Cash on delivery</span><CaretRight :size="18" /></button><button class="primary-button" @click="navigate('suppliers')">Save supplier</button></section>
 
