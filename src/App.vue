@@ -39,6 +39,8 @@ const familyPlanningDate = ref('2026-12-18')
 const scheduleVisitOpen = ref(false)
 const scheduleDate = ref('2026-12-18')
 const customerFilter = ref('all')
+const showAllVisits = ref(false)
+const openVisitNote = ref(null)
 
 // Local-only fixture data for UI review. This is intentionally static until the API layer is added.
 const mockData = {
@@ -83,7 +85,7 @@ const mockData = {
   ],
 }
 
-const selectedCustomer = ref({ initials: 'OO', name: 'Otieno Odhiambo', contact: '0722 910 442 · Kilimani', balance: 'KES 4,200', status: 'Owing', familyPlanning: true, nextReminder: '18 Dec 2026' })
+const selectedCustomer = ref({ initials: 'OO', name: 'Otieno Odhiambo', contact: '0722 910 442 · Kilimani', balance: 'KES 4,200', status: 'Owing', familyPlanning: true, nextReminder: '18 Dec 2026', visits: [{ date: '22 Oct 2026', label: 'Visit 1', status: 'Completed', notes: 'Started monthly treatment. Client requested afternoon reminders.' }, { date: '20 Nov 2026', label: 'Visit 2', status: 'Completed', notes: 'Client arrived 2 days late and was taking antibiotics. Pharmacist advised follow-up before treatment.' }, { date: '18 Dec 2026', label: 'Upcoming', status: 'Scheduled', notes: '' }, { date: '20 Sep 2026', label: 'Visit 0', status: 'Completed', notes: 'Initial family planning counselling and treatment collection.' }, { date: '20 Aug 2026', label: 'Visit 0', status: 'Completed', notes: 'Client enrolled in the family planning reminder programme.' }] })
 
 const screens = [
   'create-account', 'create-pin', 'login', 'profile', 'dashboard', 'sales',
@@ -103,17 +105,21 @@ const navigate = (screen) => {
 }
 
 const openCustomer = (row) => {
-  selectedCustomer.value = { initials: row[0], name: row[1], contact: row[2], balance: row[3], status: row[4], familyPlanning: row[1] === 'Otieno Odhiambo', nextReminder: '18 Dec 2026' }
+  selectedCustomer.value = { initials: row[0], name: row[1], contact: row[2], balance: row[3], status: row[4], familyPlanning: isFamilyPlanning(row), nextReminder: '18 Dec 2026', visits: selectedCustomer.value.visits }
+  showAllVisits.value = false
+  openVisitNote.value = null
   scheduleDate.value = '2026-12-18'
   navigate('customer-detail')
 }
 
 const isFamilyPlanning = (row) => ['Otieno Odhiambo', 'Aisha Mohamed'].includes(row[1])
 const setCustomerFilter = (filter) => { customerFilter.value = filter }
+const toggleVisitNote = (index) => { openVisitNote.value = openVisitNote.value === index ? null : index }
 const formatDate = (value) => value ? new Date(`${value}T00:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not scheduled'
 const scheduleFamilyPlanningVisit = () => {
   if (!scheduleDate.value) return
   selectedCustomer.value.nextReminder = formatDate(scheduleDate.value)
+  selectedCustomer.value.visits = [...selectedCustomer.value.visits.filter((visit) => visit.status !== 'Scheduled'), { date: formatDate(scheduleDate.value), label: 'Upcoming', status: 'Scheduled', notes: '' }]
   scheduleVisitOpen.value = false
   showToast('Family planning date scheduled')
 }
@@ -145,6 +151,10 @@ const filteredStock = computed(() => {
 })
 
 const filteredSales = computed(() => mockData.sales.filter((row) => Object.values(row).join(' ').toLowerCase().includes(search.value.toLowerCase())))
+const visibleVisits = computed(() => {
+  const visits = [...selectedCustomer.value.visits].sort((a, b) => new Date(a.date) - new Date(b.date))
+  return showAllVisits.value ? visits : visits.slice(-3)
+})
 
 const statusClass = (status) => status === 'Cleared' ? 'status cleared' : status === 'Overdue' ? 'status overdue' : 'status owing'
 const icon = (component, props = {}) => h(component, { size: 20, ...props })
@@ -235,7 +245,7 @@ const ReceiptLine = { props: ['label', 'amount', 'strong'], setup(props) { retur
 
       <section v-else-if="currentScreen === 'customers'" class="product-screen"><PageHeader title="Customers" subtitle="128 customers" placeholder="Search name or phone..." v-model="search" @menu="toggleMenu" /><div class="filter-row"><button :class="{ active: customerFilter === 'all' }" @click="setCustomerFilter('all')">All</button><button :class="{ active: customerFilter === 'family-planning' }" @click="setCustomerFilter('family-planning')">Family planning (12)</button><button>With credit (23)</button><button>Top buyers</button></div><div class="list-card"><button v-for="row in filteredCustomers" :key="row[1]" class="customer-row customer-button" @click="openCustomer(row)"><div class="avatar">{{ row[0] }}</div><div class="row-main"><strong>{{ row[1] }}</strong><small>{{ row[2] }}</small><small v-if="isFamilyPlanning(row)" class="reminder-label">Family planning client</small></div><div class="row-side"><strong :class="{ debt: row[4] !== 'Cleared' }">{{ row[3] }}</strong><small :class="statusClass(row[4])">{{ row[4] }}</small></div><CaretRight :size="17" /></button></div></section>
 
-      <section v-else-if="currentScreen === 'customer-detail'" class="product-screen"><AppHeader :title="selectedCustomer.name" :subtitle="selectedCustomer.contact" @back="navigate('customers')" @menu="toggleMenu" /><div class="customer-detail-hero"><div class="avatar avatar-large">{{ selectedCustomer.initials }}</div><div><span>Current debt balance</span><strong>{{ selectedCustomer.balance }}</strong><small>{{ selectedCustomer.status }}</small></div></div><div class="detail-actions"><button class="primary-button" @click="debtPaymentOpen = !debtPaymentOpen"><CreditCard :size="18" /> Record debt payment</button></div><div v-if="debtPaymentOpen" class="payment-entry list-card"><label>Payment amount<input v-model="debtPaymentAmount" placeholder="e.g. KES 1,500" /></label><button class="primary-button" @click="recordDebtPayment">Update balance</button></div><div v-if="selectedCustomer.familyPlanning" class="reminder-card"><div><strong>Family planning client</strong><small>Next appointment: {{ selectedCustomer.nextReminder }}</small></div><span class="status cleared">Reminders on</span></div><div v-if="selectedCustomer.familyPlanning" class="visit-card"><div class="section-heading"><h3>Family planning visits</h3><button @click="scheduleVisitOpen = !scheduleVisitOpen"><CalendarBlank :size="16" /> Schedule new date</button></div><div v-if="scheduleVisitOpen" class="schedule-entry"><label>Next visit date<input v-model="scheduleDate" type="date" /></label><button class="primary-button" @click="scheduleFamilyPlanningVisit">Save date</button></div><div class="list-card ledger-list"><div class="ledger-row"><div><strong>Last visit</strong><small>20 Nov 2026 · Treatment collected</small></div><span class="status cleared">Completed</span></div><div class="ledger-row"><div><strong>Previous visit</strong><small>22 Oct 2026 · Treatment collected</small></div><span class="status cleared">Completed</span></div></div></div><div class="section-heading"><h3>Debt history</h3><span class="muted-caption">Balance updates automatically</span></div><div class="list-card ledger-list"><div class="ledger-row"><div><strong>Debt payment</strong><small>06 Dec 2026 · M-Pesa</small></div><strong class="credit-paid">− KES 1,000</strong></div><div class="ledger-row"><div><strong>Credit sale</strong><small>02 Dec 2026 · Receipt #RC-2038</small></div><strong class="debt">+ KES 5,200</strong></div><div class="ledger-row"><div><strong>Debt payment</strong><small>28 Nov 2026 · Cash</small></div><strong class="credit-paid">− KES 2,000</strong></div></div></section>
+      <section v-else-if="currentScreen === 'customer-detail'" class="product-screen"><AppHeader :title="selectedCustomer.name" :subtitle="selectedCustomer.contact" @back="navigate('customers')" @menu="toggleMenu" /><div class="customer-detail-hero"><div class="avatar avatar-large">{{ selectedCustomer.initials }}</div><div><span>Current debt balance</span><strong>{{ selectedCustomer.balance }}</strong><small>{{ selectedCustomer.status }}</small></div></div><div class="detail-actions"><button class="primary-button" @click="debtPaymentOpen = !debtPaymentOpen"><CreditCard :size="18" /> Record debt payment</button></div><div v-if="debtPaymentOpen" class="payment-entry list-card"><label>Payment amount<input v-model="debtPaymentAmount" placeholder="e.g. KES 1,500" /></label><button class="primary-button" @click="recordDebtPayment">Update balance</button></div><div v-if="selectedCustomer.familyPlanning" class="reminder-card"><div><strong>Family planning client</strong><small>Next appointment: {{ selectedCustomer.nextReminder }}</small></div><span class="status cleared">Reminders on</span></div><div v-if="selectedCustomer.familyPlanning" class="visit-card"><div class="section-heading"><h3>Family planning visits</h3><button @click="scheduleVisitOpen = !scheduleVisitOpen"><CalendarBlank :size="16" /> Schedule new date</button></div><div v-if="scheduleVisitOpen" class="schedule-entry"><label>Next visit date<input v-model="scheduleDate" type="date" /></label><button class="primary-button" @click="scheduleFamilyPlanningVisit">Save date</button></div><div class="visit-list"> <div v-for="(visit, index) in visibleVisits" :key="`${visit.date}-${index}`" class="visit-row"><span class="visit-number">{{ index + 1 }}</span><div class="visit-main"><strong>{{ visit.label }}</strong><small>{{ visit.date }} · {{ visit.status }}</small><button v-if="visit.notes" class="notes-button" @click="toggleVisitNote(index)">Read notes</button><p v-if="visit.notes && openVisitNote === index" class="visit-note">{{ visit.notes }}</p></div></div></div><button v-if="selectedCustomer.visits.length > 3" class="show-more-button" @click="showAllVisits = !showAllVisits">{{ showAllVisits ? 'Show fewer visits' : `Show all ${selectedCustomer.visits.length} visits` }}</button></div><div class="section-heading"><h3>Debt history</h3><span class="muted-caption">Balance updates automatically</span></div><div class="list-card ledger-list"><div class="ledger-row"><div><strong>Debt payment</strong><small>06 Dec 2026 · M-Pesa</small></div><strong class="credit-paid">− KES 1,000</strong></div><div class="ledger-row"><div><strong>Credit sale</strong><small>02 Dec 2026 · Receipt #RC-2038</small></div><strong class="debt">+ KES 5,200</strong></div><div class="ledger-row"><div><strong>Debt payment</strong><small>28 Nov 2026 · Cash</small></div><strong class="credit-paid">− KES 2,000</strong></div></div></section>
 
       <section v-else-if="currentScreen === 'add-customer'" class="product-screen"><AppHeader title="Add Customer" subtitle="New customer record" @back="navigate('customers')" @menu="toggleMenu" /><FormField label="Full name" placeholder="e.g. Otieno Odhiambo" /><FormField label="Phone number" placeholder="+254 7XX XXX XXX" /><FormField label="Location" placeholder="e.g. Kilimani" /><label class="check-row"><input type="checkbox" checked /> <span>Credit customer</span></label><label class="check-row"><input type="checkbox" /> <span>Family planning client</span></label><label class="date-field">Next family planning date<input v-model="familyPlanningDate" type="date" /></label><div class="toggle-row"><div><strong>SMS reminders</strong><small>Send treatment date reminders with consent</small></div><div class="toggle on"></div></div><button class="primary-button" @click="navigate('customers')">Save customer</button></section>
 
