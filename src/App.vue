@@ -32,6 +32,8 @@ const currentScreen = ref('login')
 const toast = ref('')
 const search = ref('')
 const menuOpen = ref(false)
+const debtPaymentOpen = ref(false)
+const debtPaymentAmount = ref('')
 
 // Local-only fixture data for UI review. This is intentionally static until the API layer is added.
 const mockData = {
@@ -76,9 +78,11 @@ const mockData = {
   ],
 }
 
+const selectedCustomer = ref({ initials: 'OO', name: 'Otieno Odhiambo', contact: '0722 910 442 · Kilimani', balance: 'KES 4,200', status: 'Owing', familyPlanning: true, nextReminder: '18 Dec 2026' })
+
 const screens = [
   'create-account', 'create-pin', 'login', 'profile', 'dashboard', 'sales',
-  'new-sale', 'payment-received', 'customers', 'add-customer', 'suppliers',
+  'new-sale', 'payment-received', 'customers', 'customer-detail', 'add-customer', 'suppliers',
   'add-supplier', 'stock', 'add-stock',
 ]
 
@@ -89,7 +93,13 @@ const navigate = (screen) => {
   currentScreen.value = screen
   search.value = ''
   menuOpen.value = false
+  if (screen !== 'customer-detail') debtPaymentOpen.value = false
   window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'auto' }))
+}
+
+const openCustomer = (row) => {
+  selectedCustomer.value = { initials: row[0], name: row[1], contact: row[2], balance: row[3], status: row[4], familyPlanning: row[1] === 'Otieno Odhiambo', nextReminder: '18 Dec 2026' }
+  navigate('customer-detail')
 }
 
 const toggleMenu = () => { menuOpen.value = !menuOpen.value }
@@ -99,6 +109,15 @@ const showToast = (message) => {
   toast.value = message
   window.clearTimeout(showToast.timer)
   showToast.timer = window.setTimeout(() => { toast.value = '' }, 2400)
+}
+
+const recordDebtPayment = () => {
+  if (!debtPaymentAmount.value) return
+  selectedCustomer.value.balance = 'KES 2,700'
+  selectedCustomer.value.status = 'Owing'
+  debtPaymentAmount.value = ''
+  debtPaymentOpen.value = false
+  showToast('Debt payment recorded and balance updated')
 }
 
 const filteredCustomers = computed(() => {
@@ -198,9 +217,11 @@ const ReceiptLine = { props: ['label', 'amount', 'strong'], setup(props) { retur
 
       <section v-else-if="currentScreen === 'payment-received'" class="auth-screen payment-screen"><div class="success-mark"><Check :size="40" /></div><h1>Payment received</h1><strong class="payment-amount">KES 800</strong><p>M-Pesa · Receipt #RC-2049 · 4:32 PM</p><div class="receipt-card"><ReceiptLine label="Unga Maize Flour 2kg × 2" amount="KES 300" /><ReceiptLine label="Bidco Cooking Oil 1L × 1" amount="KES 320" /><ReceiptLine label="Brookside Milk 500ml × 3" amount="KES 180" /><hr /><ReceiptLine label="Customer" amount="Walk-in customer" /><ReceiptLine label="Total paid" amount="KES 800" strong /></div><button class="primary-button" @click="navigate('dashboard')">Back to dashboard</button></section>
 
-      <section v-else-if="currentScreen === 'customers'" class="product-screen"><PageHeader title="Customers" subtitle="128 customers" placeholder="Search name or phone..." v-model="search" @menu="toggleMenu" /><div class="filter-row"><button class="active">All</button><button>With credit (23)</button><button>Top buyers</button></div><div class="list-card"><div v-for="row in filteredCustomers" :key="row[1]" class="customer-row"><div class="avatar">{{ row[0] }}</div><div class="row-main"><strong>{{ row[1] }}</strong><small>{{ row[2] }}</small></div><div class="row-side"><strong :class="{ debt: row[4] !== 'Cleared' }">{{ row[3] }}</strong><small :class="statusClass(row[4])">{{ row[4] }}</small></div></div></div></section>
+      <section v-else-if="currentScreen === 'customers'" class="product-screen"><PageHeader title="Customers" subtitle="128 customers" placeholder="Search name or phone..." v-model="search" @menu="toggleMenu" /><div class="filter-row"><button class="active">All</button><button>With credit (23)</button><button>Top buyers</button></div><div class="list-card"><button v-for="row in filteredCustomers" :key="row[1]" class="customer-row customer-button" @click="openCustomer(row)"><div class="avatar">{{ row[0] }}</div><div class="row-main"><strong>{{ row[1] }}</strong><small>{{ row[2] }}</small></div><div class="row-side"><strong :class="{ debt: row[4] !== 'Cleared' }">{{ row[3] }}</strong><small :class="statusClass(row[4])">{{ row[4] }}</small></div><CaretRight :size="17" /></button></div></section>
 
-      <section v-else-if="currentScreen === 'add-customer'" class="product-screen"><AppHeader title="Add Customer" subtitle="New customer record" @back="navigate('customers')" @menu="toggleMenu" /><FormField label="Full name" placeholder="e.g. Otieno Odhiambo" /><FormField label="Phone number" placeholder="+254 7XX XXX XXX" /><FormField label="Location" placeholder="e.g. Kilimani" /><div class="toggle-row"><div><strong>Allow credit</strong><small>Customer can pay later</small></div><div class="toggle on"></div></div><button class="primary-button" @click="navigate('customers')">Save customer</button></section>
+      <section v-else-if="currentScreen === 'customer-detail'" class="product-screen"><AppHeader :title="selectedCustomer.name" :subtitle="selectedCustomer.contact" @back="navigate('customers')" @menu="toggleMenu" /><div class="customer-detail-hero"><div class="avatar avatar-large">{{ selectedCustomer.initials }}</div><div><span>Current debt balance</span><strong>{{ selectedCustomer.balance }}</strong><small>{{ selectedCustomer.status }}</small></div></div><div class="detail-actions"><button class="primary-button" @click="debtPaymentOpen = !debtPaymentOpen"><CreditCard :size="18" /> Record debt payment</button></div><div v-if="debtPaymentOpen" class="payment-entry list-card"><label>Payment amount<input v-model="debtPaymentAmount" placeholder="e.g. KES 1,500" /></label><button class="primary-button" @click="recordDebtPayment">Update balance</button></div><div v-if="selectedCustomer.familyPlanning" class="reminder-card"><div><strong>Family planning client</strong><small>Next reminder: {{ selectedCustomer.nextReminder }}</small></div><span class="status cleared">Reminders on</span></div><div class="section-heading"><h3>Debt history</h3><span class="muted-caption">Balance updates automatically</span></div><div class="list-card ledger-list"><div class="ledger-row"><div><strong>Debt payment</strong><small>06 Dec 2026 · M-Pesa</small></div><strong class="credit-paid">− KES 1,000</strong></div><div class="ledger-row"><div><strong>Credit sale</strong><small>02 Dec 2026 · Receipt #RC-2038</small></div><strong class="debt">+ KES 5,200</strong></div><div class="ledger-row"><div><strong>Debt payment</strong><small>28 Nov 2026 · Cash</small></div><strong class="credit-paid">− KES 2,000</strong></div></div></section>
+
+      <section v-else-if="currentScreen === 'add-customer'" class="product-screen"><AppHeader title="Add Customer" subtitle="New customer record" @back="navigate('customers')" @menu="toggleMenu" /><FormField label="Full name" placeholder="e.g. Otieno Odhiambo" /><FormField label="Phone number" placeholder="+254 7XX XXX XXX" /><FormField label="Location" placeholder="e.g. Kilimani" /><label class="check-row"><input type="checkbox" checked /> <span>Credit customer</span></label><label class="check-row"><input type="checkbox" /> <span>Family planning client</span></label><FormField label="Next family planning date" placeholder="e.g. 18 Dec 2026" /><div class="toggle-row"><div><strong>SMS reminders</strong><small>Send treatment date reminders with consent</small></div><div class="toggle on"></div></div><button class="primary-button" @click="navigate('customers')">Save customer</button></section>
 
       <section v-else-if="currentScreen === 'suppliers'" class="product-screen"><PageHeader title="Suppliers" subtitle="14 active suppliers" placeholder="Search supplier or product..." v-model="search" @menu="toggleMenu" /><div class="metric-grid"><MetricCard label="Amount owed" value="KES 214,300" note="to 6 suppliers" :icon="Warning" warning /><MetricCard label="Deliveries" value="3 this week" note="next: Mon" :icon="Truck" /></div><div class="filter-row"><button class="active">All</button><button>Owed (6)</button><button>Food & drinks</button></div><div class="list-card"><SaleRow v-for="supplier in mockData.suppliers" :key="supplier.name" v-bind="supplier" /></div></section>
 

@@ -65,3 +65,10 @@ svg { flex: 0 0 auto; }
 .home-fab { position: fixed; right: max(18px, calc((100vw - 390px) / 2 + 18px)); bottom: 84px; z-index: 6; display: inline-flex; align-items: center; gap: 8px; padding: 13px 17px; border-radius: 999px; color: #fff; background: var(--teal); box-shadow: 0 10px 25px rgba(9, 102, 94, .28); font-size: 13px; font-weight: 700; }
 .home-fab:active { transform: translateY(1px); }
 .customer-fab { background: var(--teal-dark); }
+.customer-button { width: 100%; background: #fff; text-align: left; }
+.customer-detail-hero { display: flex; align-items: center; gap: 14px; padding: 17px; border-radius: 15px; color: #fff; background: linear-gradient(135deg, #158a7e, #2e9388); }
+.customer-detail-hero span, .customer-detail-hero small { display: block; color: rgba(255,255,255,.72); font-size: 11px; }
+.customer-detail-hero strong { display: block; margin: 4px 0; font-size: 24px; }
+.detail-actions { margin-top: 13px; }.detail-actions .primary-button { margin-top: 0; }
+.payment-entry { margin-top: 13px; padding: 14px; }.payment-entry label { margin: 0; }.payment-entry .primary-button { margin-top: 12px; }
+.reminder-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 13px; padding: 14px; border: 1px solid #b8d9d4; border-radius: 15px; background: #eff8f6; }.reminder-card strong, .reminder-card small { display: block; }.reminder-card strong { color: var(--teal-dark); font-size: 13px; }.reminder-card small { margin-top: 4px; color: #657c7c; font-size: 11px; }.muted-caption { color: #84909a; font-size: 10px; }.ledger-row { display: flex; justify-content: space-between; gap: 12px; padding: 14px; border-bottom: 1px solid var(--line); }.ledger-row:last-child { border-bottom: 0; }.ledger-row strong, .ledger-row small { display: block; }.ledger-row strong { font-size: 13px; }.ledger-row small { margin-top: 4px; color: #84909a; font-size: 11px; }.credit-paid { color: #3b9b64; }.customer-button > svg { color: var(--teal-dark); }
