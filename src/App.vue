@@ -51,9 +51,9 @@ const mockData = {
     weeklySales: [28, 36, 31, 48, 42, 58, 48],
     weeklyLabels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'],
     topProducts: [
-      { name: 'Unga Maize Flour 2kg', units: 42, revenue: 'KES 6,300' },
-      { name: 'Bidco Cooking Oil 1L', units: 28, revenue: 'KES 8,960' },
-      { name: 'Brookside Milk 500ml', units: 64, revenue: 'KES 3,840' },
+      { name: 'Paracetamol 500mg', units: 96, revenue: 'KES 4,800' },
+      { name: 'ORS Sachets', units: 42, revenue: 'KES 2,940' },
+      { name: 'Artemether-Lumefantrine 20/120mg', units: 28, revenue: 'KES 6,720' },
     ],
   },
   sales: [
@@ -77,11 +77,11 @@ const mockData = {
     { initials: 'KC', name: 'Kenafric Industries', receipt: 'Biscuits, sweets', amount: 'KES 22,300', badge: 'Owed' },
   ],
   stock: [
-    ['UM', 'Unga Maize Flour 2kg', 'Price KES 150', '4 left', 'Low'],
-    ['BC', 'Bidco Cooking Oil 1L', 'Price KES 320', '2 left', 'Low'],
-    ['BM', 'Brookside Milk 500ml', 'Price KES 60', '6 left', 'Reorder'],
-    ['SK', 'Soko Maize Meal 2kg', 'Price KES 170', '0 left', 'Out'],
-    ['BR', 'Brookside Yoghurt 500ml', 'Price KES 120', '9 left', 'Healthy'],
+    ['P5', 'Paracetamol 500mg', 'Price KES 50 · 100 tablets', '4 packs left', 'Low'],
+    ['OR', 'ORS Sachets', 'Price KES 70 · 20 sachets', '6 packs left', 'Reorder'],
+    ['AL', 'Artemether-Lumefantrine 20/120mg', 'Price KES 240 · 6 tablets', '2 packs left', 'Low'],
+    ['AM', 'Amoxicillin 500mg', 'Price KES 180 · 21 capsules', '0 packs left', 'Out'],
+    ['DP', 'Depo-Provera Injection', 'Price KES 450 · 1 dose', '9 doses left', 'Healthy'],
   ],
 }
 
@@ -237,11 +237,11 @@ const ReceiptLine = { props: ['label', 'amount', 'strong'], setup(props) { retur
       <section v-else-if="currentScreen === 'new-sale'" class="product-screen">
         <AppHeader title="New Sale" subtitle="Receipt #RC-2049" @back="navigate('dashboard')" @menu="toggleMenu" />
         <button class="customer-picker"><Users :size="21" /> Walk-in customer <CaretRight :size="18" /></button><div class="section-heading"><h3>Items (3)</h3><button>Add item</button></div>
-        <div class="list-card item-list"><ItemRow name="Unga Maize Flour 2kg" detail="KES 150 × 2 = KES 300" count="2" /><ItemRow name="Bidco Cooking Oil 1L" detail="KES 320 × 1 = KES 320" count="1" /><ItemRow name="Brookside Milk 500ml" detail="KES 60 × 3 = KES 180" count="3" /></div>
+        <div class="list-card item-list"><ItemRow name="Paracetamol 500mg" detail="KES 50 × 2 = KES 100" count="2" /><ItemRow name="ORS Sachets" detail="KES 70 × 1 = KES 70" count="1" /><ItemRow name="Vitamin C 500mg" detail="KES 105 × 6 = KES 630" count="6" /></div>
         <div class="total-card"><span>Subtotal</span><strong>KES 800</strong><span>Total</span><strong>KES 800</strong></div><p class="field-label">Payment method</p><div class="filter-row"><button class="active">M-Pesa</button><button>Cash</button><button>Credit</button></div><button class="primary-button" @click="navigate('payment-received')">Complete sale <Check :size="18" /></button>
       </section>
 
-      <section v-else-if="currentScreen === 'payment-received'" class="auth-screen payment-screen"><div class="success-mark"><Check :size="40" /></div><h1>Payment received</h1><strong class="payment-amount">KES 800</strong><p>M-Pesa · Receipt #RC-2049 · 4:32 PM</p><div class="receipt-card"><ReceiptLine label="Unga Maize Flour 2kg × 2" amount="KES 300" /><ReceiptLine label="Bidco Cooking Oil 1L × 1" amount="KES 320" /><ReceiptLine label="Brookside Milk 500ml × 3" amount="KES 180" /><hr /><ReceiptLine label="Customer" amount="Walk-in customer" /><ReceiptLine label="Total paid" amount="KES 800" strong /></div><button class="primary-button" @click="navigate('dashboard')">Back to dashboard</button></section>
+      <section v-else-if="currentScreen === 'payment-received'" class="auth-screen payment-screen"><div class="success-mark"><Check :size="40" /></div><h1>Payment received</h1><strong class="payment-amount">KES 800</strong><p>M-Pesa · Receipt #RC-2049 · 4:32 PM</p><div class="receipt-card"><ReceiptLine label="Paracetamol 500mg × 2" amount="KES 100" /><ReceiptLine label="ORS Sachets × 1" amount="KES 70" /><ReceiptLine label="Vitamin C 500mg × 6" amount="KES 630" /><hr /><ReceiptLine label="Customer" amount="Walk-in customer" /><ReceiptLine label="Total paid" amount="KES 800" strong /></div><button class="primary-button" @click="navigate('dashboard')">Back to dashboard</button></section>
 
       <section v-else-if="currentScreen === 'customers'" class="product-screen"><PageHeader title="Customers" subtitle="128 customers" placeholder="Search name or phone..." v-model="search" @menu="toggleMenu" /><div class="filter-row"><button :class="{ active: customerFilter === 'all' }" @click="setCustomerFilter('all')">All</button><button :class="{ active: customerFilter === 'family-planning' }" @click="setCustomerFilter('family-planning')">Family planning (12)</button><button>With credit (23)</button><button>Top buyers</button></div><div class="list-card"><button v-for="row in filteredCustomers" :key="row[1]" class="customer-row customer-button" @click="openCustomer(row)"><div class="avatar">{{ row[0] }}</div><div class="row-main"><strong>{{ row[1] }}</strong><small>{{ row[2] }}</small><small v-if="isFamilyPlanning(row)" class="reminder-label">Family planning client</small></div><div class="row-side"><strong :class="{ debt: row[4] !== 'Cleared' }">{{ row[3] }}</strong><small :class="statusClass(row[4])">{{ row[4] }}</small></div><CaretRight :size="17" /></button></div></section>
 
@@ -254,7 +254,7 @@ const ReceiptLine = { props: ['label', 'amount', 'strong'], setup(props) { retur
       <section v-else-if="currentScreen === 'add-supplier'" class="product-screen"><AppHeader title="Add Supplier" subtitle="New supplier record" @back="navigate('suppliers')" @menu="toggleMenu" /><FormField label="Supplier name" placeholder="e.g. Unga Group Ltd" /><FormField label="Contact phone" placeholder="+254 7XX XXX XXX" /><FormField label="Products supplied" placeholder="e.g. Maize flour, wheat flour" /><button class="customer-picker">Payment terms <span>Cash on delivery</span><CaretRight :size="18" /></button><button class="primary-button" @click="navigate('suppliers')">Save supplier</button></section>
 
       <section v-else-if="currentScreen === 'stock'" class="product-screen"><PageHeader title="Stock" subtitle="142 products" placeholder="Search product..." v-model="search" @menu="toggleMenu" /><div class="metric-grid"><MetricCard label="Products" value="142" note="in your shop" :icon="Box" /><MetricCard label="Low stock" value="7 items" note="restock soon" :icon="Warning" warning /></div><div class="filter-row"><button>All</button><button class="active">Low stock (7)</button><button>Out of stock</button></div><div class="list-card"><div v-for="row in filteredStock" :key="row[1]" class="customer-row"><div class="avatar">{{ row[0] }}</div><div class="row-main"><strong>{{ row[1] }}</strong><small>{{ row[2] }}</small></div><div class="row-side"><strong class="debt">{{ row[3] }}</strong><small class="status overdue">{{ row[4] }}</small></div></div></div></section>
-      <section v-else-if="currentScreen === 'add-stock'" class="product-screen"><AppHeader title="Stock In" subtitle="Record incoming stock" @back="navigate('stock')" @menu="toggleMenu" /><FormField label="Product name" placeholder="e.g. Unga Maize Flour 2kg" /><FormField label="Quantity received" placeholder="e.g. 24" /><FormField label="Cost per item" placeholder="e.g. KES 125" /><button class="customer-picker">Supplier <span>Unga Group Ltd</span><CaretRight :size="18" /></button><button class="primary-button" @click="navigate('stock')">Save stock entry</button></section>
+      <section v-else-if="currentScreen === 'add-stock'" class="product-screen"><AppHeader title="Stock In" subtitle="Record incoming stock" @back="navigate('stock')" @menu="toggleMenu" /><FormField label="Product name" placeholder="e.g. Paracetamol 500mg" /><FormField label="Quantity received" placeholder="e.g. 24 packs" /><FormField label="Cost per pack" placeholder="e.g. KES 35" /><button class="customer-picker">Supplier <span>Mediplus Pharmacy Wholesalers</span><CaretRight :size="18" /></button><button class="primary-button" @click="navigate('stock')">Save stock entry</button></section>
     </main>
 
     <button v-if="currentScreen === 'dashboard'" class="home-fab" aria-label="Record a sale" @click="navigate('new-sale')"><ShoppingCart :size="21" weight="bold" /><span>Record sale</span></button>
