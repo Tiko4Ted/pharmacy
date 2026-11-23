@@ -4,6 +4,7 @@ import {
   PhArrowLeft as ArrowLeft,
   PhArrowRight as ArrowRight,
   PhBell as Bell,
+  PhCalendarBlank as CalendarBlank,
   PhCube as Box,
   PhCheck as Check,
   PhCaretRight as CaretRight,
@@ -34,6 +35,10 @@ const search = ref('')
 const menuOpen = ref(false)
 const debtPaymentOpen = ref(false)
 const debtPaymentAmount = ref('')
+const familyPlanningDate = ref('2026-12-18')
+const scheduleVisitOpen = ref(false)
+const scheduleDate = ref('2026-12-18')
+const customerFilter = ref('all')
 
 // Local-only fixture data for UI review. This is intentionally static until the API layer is added.
 const mockData = {
@@ -99,7 +104,18 @@ const navigate = (screen) => {
 
 const openCustomer = (row) => {
   selectedCustomer.value = { initials: row[0], name: row[1], contact: row[2], balance: row[3], status: row[4], familyPlanning: row[1] === 'Otieno Odhiambo', nextReminder: '18 Dec 2026' }
+  scheduleDate.value = '2026-12-18'
   navigate('customer-detail')
+}
+
+const isFamilyPlanning = (row) => ['Otieno Odhiambo', 'Aisha Mohamed'].includes(row[1])
+const setCustomerFilter = (filter) => { customerFilter.value = filter }
+const formatDate = (value) => value ? new Date(`${value}T00:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not scheduled'
+const scheduleFamilyPlanningVisit = () => {
+  if (!scheduleDate.value) return
+  selectedCustomer.value.nextReminder = formatDate(scheduleDate.value)
+  scheduleVisitOpen.value = false
+  showToast('Family planning date scheduled')
 }
 
 const toggleMenu = () => { menuOpen.value = !menuOpen.value }
@@ -121,7 +137,7 @@ const recordDebtPayment = () => {
 }
 
 const filteredCustomers = computed(() => {
-  return mockData.customers.filter((row) => row.join(' ').toLowerCase().includes(search.value.toLowerCase()))
+  return mockData.customers.filter((row) => row.join(' ').toLowerCase().includes(search.value.toLowerCase())).filter((row) => customerFilter.value === 'all' || isFamilyPlanning(row))
 })
 
 const filteredStock = computed(() => {
@@ -217,11 +233,11 @@ const ReceiptLine = { props: ['label', 'amount', 'strong'], setup(props) { retur
 
       <section v-else-if="currentScreen === 'payment-received'" class="auth-screen payment-screen"><div class="success-mark"><Check :size="40" /></div><h1>Payment received</h1><strong class="payment-amount">KES 800</strong><p>M-Pesa · Receipt #RC-2049 · 4:32 PM</p><div class="receipt-card"><ReceiptLine label="Unga Maize Flour 2kg × 2" amount="KES 300" /><ReceiptLine label="Bidco Cooking Oil 1L × 1" amount="KES 320" /><ReceiptLine label="Brookside Milk 500ml × 3" amount="KES 180" /><hr /><ReceiptLine label="Customer" amount="Walk-in customer" /><ReceiptLine label="Total paid" amount="KES 800" strong /></div><button class="primary-button" @click="navigate('dashboard')">Back to dashboard</button></section>
 
-      <section v-else-if="currentScreen === 'customers'" class="product-screen"><PageHeader title="Customers" subtitle="128 customers" placeholder="Search name or phone..." v-model="search" @menu="toggleMenu" /><div class="filter-row"><button class="active">All</button><button>With credit (23)</button><button>Top buyers</button></div><div class="list-card"><button v-for="row in filteredCustomers" :key="row[1]" class="customer-row customer-button" @click="openCustomer(row)"><div class="avatar">{{ row[0] }}</div><div class="row-main"><strong>{{ row[1] }}</strong><small>{{ row[2] }}</small></div><div class="row-side"><strong :class="{ debt: row[4] !== 'Cleared' }">{{ row[3] }}</strong><small :class="statusClass(row[4])">{{ row[4] }}</small></div><CaretRight :size="17" /></button></div></section>
+      <section v-else-if="currentScreen === 'customers'" class="product-screen"><PageHeader title="Customers" subtitle="128 customers" placeholder="Search name or phone..." v-model="search" @menu="toggleMenu" /><div class="filter-row"><button :class="{ active: customerFilter === 'all' }" @click="setCustomerFilter('all')">All</button><button :class="{ active: customerFilter === 'family-planning' }" @click="setCustomerFilter('family-planning')">Family planning (12)</button><button>With credit (23)</button><button>Top buyers</button></div><div class="list-card"><button v-for="row in filteredCustomers" :key="row[1]" class="customer-row customer-button" @click="openCustomer(row)"><div class="avatar">{{ row[0] }}</div><div class="row-main"><strong>{{ row[1] }}</strong><small>{{ row[2] }}</small><small v-if="isFamilyPlanning(row)" class="reminder-label">Family planning client</small></div><div class="row-side"><strong :class="{ debt: row[4] !== 'Cleared' }">{{ row[3] }}</strong><small :class="statusClass(row[4])">{{ row[4] }}</small></div><CaretRight :size="17" /></button></div></section>
 
-      <section v-else-if="currentScreen === 'customer-detail'" class="product-screen"><AppHeader :title="selectedCustomer.name" :subtitle="selectedCustomer.contact" @back="navigate('customers')" @menu="toggleMenu" /><div class="customer-detail-hero"><div class="avatar avatar-large">{{ selectedCustomer.initials }}</div><div><span>Current debt balance</span><strong>{{ selectedCustomer.balance }}</strong><small>{{ selectedCustomer.status }}</small></div></div><div class="detail-actions"><button class="primary-button" @click="debtPaymentOpen = !debtPaymentOpen"><CreditCard :size="18" /> Record debt payment</button></div><div v-if="debtPaymentOpen" class="payment-entry list-card"><label>Payment amount<input v-model="debtPaymentAmount" placeholder="e.g. KES 1,500" /></label><button class="primary-button" @click="recordDebtPayment">Update balance</button></div><div v-if="selectedCustomer.familyPlanning" class="reminder-card"><div><strong>Family planning client</strong><small>Next reminder: {{ selectedCustomer.nextReminder }}</small></div><span class="status cleared">Reminders on</span></div><div class="section-heading"><h3>Debt history</h3><span class="muted-caption">Balance updates automatically</span></div><div class="list-card ledger-list"><div class="ledger-row"><div><strong>Debt payment</strong><small>06 Dec 2026 · M-Pesa</small></div><strong class="credit-paid">− KES 1,000</strong></div><div class="ledger-row"><div><strong>Credit sale</strong><small>02 Dec 2026 · Receipt #RC-2038</small></div><strong class="debt">+ KES 5,200</strong></div><div class="ledger-row"><div><strong>Debt payment</strong><small>28 Nov 2026 · Cash</small></div><strong class="credit-paid">− KES 2,000</strong></div></div></section>
+      <section v-else-if="currentScreen === 'customer-detail'" class="product-screen"><AppHeader :title="selectedCustomer.name" :subtitle="selectedCustomer.contact" @back="navigate('customers')" @menu="toggleMenu" /><div class="customer-detail-hero"><div class="avatar avatar-large">{{ selectedCustomer.initials }}</div><div><span>Current debt balance</span><strong>{{ selectedCustomer.balance }}</strong><small>{{ selectedCustomer.status }}</small></div></div><div class="detail-actions"><button class="primary-button" @click="debtPaymentOpen = !debtPaymentOpen"><CreditCard :size="18" /> Record debt payment</button></div><div v-if="debtPaymentOpen" class="payment-entry list-card"><label>Payment amount<input v-model="debtPaymentAmount" placeholder="e.g. KES 1,500" /></label><button class="primary-button" @click="recordDebtPayment">Update balance</button></div><div v-if="selectedCustomer.familyPlanning" class="reminder-card"><div><strong>Family planning client</strong><small>Next appointment: {{ selectedCustomer.nextReminder }}</small></div><span class="status cleared">Reminders on</span></div><div v-if="selectedCustomer.familyPlanning" class="visit-card"><div class="section-heading"><h3>Family planning visits</h3><button @click="scheduleVisitOpen = !scheduleVisitOpen"><CalendarBlank :size="16" /> Schedule new date</button></div><div v-if="scheduleVisitOpen" class="schedule-entry"><label>Next visit date<input v-model="scheduleDate" type="date" /></label><button class="primary-button" @click="scheduleFamilyPlanningVisit">Save date</button></div><div class="list-card ledger-list"><div class="ledger-row"><div><strong>Last visit</strong><small>20 Nov 2026 · Treatment collected</small></div><span class="status cleared">Completed</span></div><div class="ledger-row"><div><strong>Previous visit</strong><small>22 Oct 2026 · Treatment collected</small></div><span class="status cleared">Completed</span></div></div></div><div class="section-heading"><h3>Debt history</h3><span class="muted-caption">Balance updates automatically</span></div><div class="list-card ledger-list"><div class="ledger-row"><div><strong>Debt payment</strong><small>06 Dec 2026 · M-Pesa</small></div><strong class="credit-paid">− KES 1,000</strong></div><div class="ledger-row"><div><strong>Credit sale</strong><small>02 Dec 2026 · Receipt #RC-2038</small></div><strong class="debt">+ KES 5,200</strong></div><div class="ledger-row"><div><strong>Debt payment</strong><small>28 Nov 2026 · Cash</small></div><strong class="credit-paid">− KES 2,000</strong></div></div></section>
 
-      <section v-else-if="currentScreen === 'add-customer'" class="product-screen"><AppHeader title="Add Customer" subtitle="New customer record" @back="navigate('customers')" @menu="toggleMenu" /><FormField label="Full name" placeholder="e.g. Otieno Odhiambo" /><FormField label="Phone number" placeholder="+254 7XX XXX XXX" /><FormField label="Location" placeholder="e.g. Kilimani" /><label class="check-row"><input type="checkbox" checked /> <span>Credit customer</span></label><label class="check-row"><input type="checkbox" /> <span>Family planning client</span></label><FormField label="Next family planning date" placeholder="e.g. 18 Dec 2026" /><div class="toggle-row"><div><strong>SMS reminders</strong><small>Send treatment date reminders with consent</small></div><div class="toggle on"></div></div><button class="primary-button" @click="navigate('customers')">Save customer</button></section>
+      <section v-else-if="currentScreen === 'add-customer'" class="product-screen"><AppHeader title="Add Customer" subtitle="New customer record" @back="navigate('customers')" @menu="toggleMenu" /><FormField label="Full name" placeholder="e.g. Otieno Odhiambo" /><FormField label="Phone number" placeholder="+254 7XX XXX XXX" /><FormField label="Location" placeholder="e.g. Kilimani" /><label class="check-row"><input type="checkbox" checked /> <span>Credit customer</span></label><label class="check-row"><input type="checkbox" /> <span>Family planning client</span></label><label class="date-field">Next family planning date<input v-model="familyPlanningDate" type="date" /></label><div class="toggle-row"><div><strong>SMS reminders</strong><small>Send treatment date reminders with consent</small></div><div class="toggle on"></div></div><button class="primary-button" @click="navigate('customers')">Save customer</button></section>
 
       <section v-else-if="currentScreen === 'suppliers'" class="product-screen"><PageHeader title="Suppliers" subtitle="14 active suppliers" placeholder="Search supplier or product..." v-model="search" @menu="toggleMenu" /><div class="metric-grid"><MetricCard label="Amount owed" value="KES 214,300" note="to 6 suppliers" :icon="Warning" warning /><MetricCard label="Deliveries" value="3 this week" note="next: Mon" :icon="Truck" /></div><div class="filter-row"><button class="active">All</button><button>Owed (6)</button><button>Food & drinks</button></div><div class="list-card"><SaleRow v-for="supplier in mockData.suppliers" :key="supplier.name" v-bind="supplier" /></div></section>
 
