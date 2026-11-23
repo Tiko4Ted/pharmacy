@@ -86,11 +86,14 @@ const mockData = {
 }
 
 const selectedCustomer = ref({ initials: 'OO', name: 'Otieno Odhiambo', contact: '0722 910 442 · Kilimani', balance: 'KES 4,200', status: 'Owing', familyPlanning: true, nextReminder: '18 Dec 2026', visits: [{ date: '22 Oct 2026', label: 'Visit 1', status: 'Completed', notes: 'Started monthly treatment. Client requested afternoon reminders.' }, { date: '20 Nov 2026', label: 'Visit 2', status: 'Completed', notes: 'Client arrived 2 days late and was taking antibiotics. Pharmacist advised follow-up before treatment.' }, { date: '18 Dec 2026', label: 'Upcoming', status: 'Scheduled', notes: '' }, { date: '20 Sep 2026', label: 'Visit 0', status: 'Completed', notes: 'Initial family planning counselling and treatment collection.' }, { date: '20 Aug 2026', label: 'Visit 0', status: 'Completed', notes: 'Client enrolled in the family planning reminder programme.' }] })
+const supplierPaymentOpen = ref(false)
+const supplierPaymentAmount = ref('')
+const selectedSupplier = ref({ initials: 'UG', name: 'Unga Group Ltd', contact: 'Maize and wheat flour supplier', balance: 'KES 62,000', status: 'Owed', supplies: [{ date: '08 Dec 2026', description: 'Pharmacy stock delivery', total: 'KES 84,000' }, { date: '25 Nov 2026', description: 'Flour and wellness products', total: 'KES 36,500' }], payments: [{ date: '10 Dec 2026', method: 'M-Pesa', amount: 'KES 22,000' }, { date: '02 Dec 2026', method: 'Bank transfer', amount: 'KES 15,000' }] })
 
 const screens = [
   'create-account', 'create-pin', 'login', 'profile', 'dashboard', 'sales',
   'new-sale', 'payment-received', 'customers', 'customer-detail', 'add-customer', 'suppliers',
-  'add-supplier', 'stock', 'add-stock',
+  'add-supplier', 'supplier-detail', 'stock', 'add-stock',
 ]
 
 const screenIndex = computed(() => screens.indexOf(currentScreen.value))
@@ -101,6 +104,7 @@ const navigate = (screen) => {
   search.value = ''
   menuOpen.value = false
   if (screen !== 'customer-detail') debtPaymentOpen.value = false
+  if (screen !== 'supplier-detail') supplierPaymentOpen.value = false
   window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'auto' }))
 }
 
@@ -110,6 +114,20 @@ const openCustomer = (row) => {
   openVisitNote.value = null
   scheduleDate.value = '2026-12-18'
   navigate('customer-detail')
+}
+
+const openSupplier = (supplier) => {
+  selectedSupplier.value = { ...selectedSupplier.value, initials: supplier.initials, name: supplier.name, contact: supplier.receipt, balance: supplier.amount, status: supplier.badge }
+  navigate('supplier-detail')
+}
+
+const recordSupplierPayment = () => {
+  if (!supplierPaymentAmount.value) return
+  selectedSupplier.value.balance = 'KES 47,000'
+  selectedSupplier.value.status = 'Owed'
+  supplierPaymentAmount.value = ''
+  supplierPaymentOpen.value = false
+  showToast('Supplier payment recorded and balance updated')
 }
 
 const isFamilyPlanning = (row) => ['Otieno Odhiambo', 'Aisha Mohamed'].includes(row[1])
@@ -249,7 +267,9 @@ const ReceiptLine = { props: ['label', 'amount', 'strong'], setup(props) { retur
 
       <section v-else-if="currentScreen === 'add-customer'" class="product-screen"><AppHeader title="Add Customer" subtitle="New customer record" @back="navigate('customers')" @menu="toggleMenu" /><FormField label="Full name" placeholder="e.g. Otieno Odhiambo" /><FormField label="Phone number" placeholder="+254 7XX XXX XXX" /><FormField label="Location" placeholder="e.g. Kilimani" /><label class="check-row"><input type="checkbox" checked /> <span>Credit customer</span></label><label class="check-row"><input type="checkbox" /> <span>Family planning client</span></label><label class="date-field">Next family planning date<input v-model="familyPlanningDate" type="date" /></label><div class="toggle-row"><div><strong>SMS reminders</strong><small>Send treatment date reminders with consent</small></div><div class="toggle on"></div></div><button class="primary-button" @click="navigate('customers')">Save customer</button></section>
 
-      <section v-else-if="currentScreen === 'suppliers'" class="product-screen"><PageHeader title="Suppliers" subtitle="14 active suppliers" placeholder="Search supplier or product..." v-model="search" @menu="toggleMenu" /><div class="metric-grid"><MetricCard label="Amount owed" value="KES 214,300" note="to 6 suppliers" :icon="Warning" warning /><MetricCard label="Deliveries" value="3 this week" note="next: Mon" :icon="Truck" /></div><div class="filter-row"><button class="active">All</button><button>Owed (6)</button><button>Food & drinks</button></div><div class="list-card"><SaleRow v-for="supplier in mockData.suppliers" :key="supplier.name" v-bind="supplier" /></div></section>
+      <section v-else-if="currentScreen === 'suppliers'" class="product-screen"><PageHeader title="Suppliers" subtitle="14 active suppliers" placeholder="Search supplier or product..." v-model="search" @menu="toggleMenu" /><div class="metric-grid"><MetricCard label="Amount owed" value="KES 214,300" note="to 6 suppliers" :icon="Warning" warning /><MetricCard label="Deliveries" value="3 this week" note="next: Mon" :icon="Truck" /></div><div class="filter-row"><button class="active">All</button><button>Owed (6)</button><button>Pharmacy products</button></div><div class="list-card"><SaleRow v-for="supplier in mockData.suppliers" :key="supplier.name" v-bind="supplier" @click="openSupplier(supplier)" /></div></section>
+
+      <section v-else-if="currentScreen === 'supplier-detail'" class="product-screen"><AppHeader :title="selectedSupplier.name" :subtitle="selectedSupplier.contact" @back="navigate('suppliers')" @menu="toggleMenu" /><div class="customer-detail-hero supplier-detail-hero"><div class="avatar avatar-large">{{ selectedSupplier.initials }}</div><div><span>Supplier balance owed</span><strong>{{ selectedSupplier.balance }}</strong><small>{{ selectedSupplier.status }}</small></div></div><div class="detail-actions supplier-actions"><button class="primary-button" @click="supplierPaymentOpen = !supplierPaymentOpen"><CreditCard :size="18" /> Record supplier payment</button></div><div v-if="supplierPaymentOpen" class="payment-entry list-card"><label>Payment amount<input v-model="supplierPaymentAmount" placeholder="e.g. KES 10,000" /></label><button class="primary-button" @click="recordSupplierPayment">Update supplier balance</button></div><div class="section-heading"><h3>Supply history</h3><button>Record supply</button></div><div class="list-card ledger-list"><div v-for="supply in selectedSupplier.supplies" :key="supply.date" class="ledger-row"><div><strong>{{ supply.description }}</strong><small>{{ supply.date }}</small></div><strong class="debt">{{ supply.total }}</strong></div></div><div class="section-heading"><h3>Payment history</h3><span class="muted-caption">Partial payments retained</span></div><div class="list-card ledger-list"><div v-for="payment in selectedSupplier.payments" :key="payment.date" class="ledger-row"><div><strong>Supplier payment</strong><small>{{ payment.date }} · {{ payment.method }}</small></div><strong class="credit-paid">− {{ payment.amount }}</strong></div></div></section>
 
       <section v-else-if="currentScreen === 'add-supplier'" class="product-screen"><AppHeader title="Add Supplier" subtitle="New supplier record" @back="navigate('suppliers')" @menu="toggleMenu" /><FormField label="Supplier name" placeholder="e.g. Unga Group Ltd" /><FormField label="Contact phone" placeholder="+254 7XX XXX XXX" /><FormField label="Products supplied" placeholder="e.g. Maize flour, wheat flour" /><button class="customer-picker">Payment terms <span>Cash on delivery</span><CaretRight :size="18" /></button><button class="primary-button" @click="navigate('suppliers')">Save supplier</button></section>
 
